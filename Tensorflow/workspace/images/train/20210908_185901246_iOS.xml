@@ -1,0 +1,26 @@
+<annotation>
+	<folder>.jpg</folder>
+	<filename>20210908_185901246_iOS.jpg</filename>
+	<path>A:\College\SCSU\SoftwareProject\Screws\ScrewsEagleEye\.jpg\20210908_185901246_iOS.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>3024</width>
+		<height>4032</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>screw</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>687</xmin>
+			<ymin>958</ymin>
+			<xmax>2435</xmax>
+			<ymax>2036</ymax>
+		</bndbox>
+	</object>
+</annotation>
