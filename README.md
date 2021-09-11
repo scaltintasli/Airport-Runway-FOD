@@ -1,6 +1,8 @@
 # Airport-Runway-FOD
 
-1-) Clone the repo
+1-) Clone this repo
+    THEN Go to Tensorflow/models and clone this https://github.com/tensorflow/models
+    And finally go to Tensorflow scripts and clone this https://github.com/nicknochnack/GenerateTFRecord
 
 2-) Run ‘pipenv install’
 
