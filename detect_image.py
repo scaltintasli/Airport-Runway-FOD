@@ -1,13 +1,19 @@
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
-%matplotlib inline
 import os
 import tensorflow as tf
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as viz_utils
 from object_detection.builders import model_builder
 from object_detection.utils import config_util
+from load_train_model import detect_fn
+
+CUSTOM_MODEL_NAME = 'my_ssd_mobnet'
+PRETRAINED_MODEL_NAME = 'ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8'
+PRETRAINED_MODEL_URL = 'http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8.tar.gz'
+TF_RECORD_SCRIPT_NAME = 'generate_tfrecord.py'
+LABEL_MAP_NAME = 'label_map.pbtxt'
 
 paths = {
     "WORKSPACE_PATH": os.path.join("Tensorflow", "workspace"),
@@ -44,7 +50,7 @@ files = {
 
 
 category_index = label_map_util.create_category_index_from_labelmap(files['LABELMAP'])
-IMAGE_PATH = os.path.join(paths['IMAGE_PATH'], 'test', 'thumbsup.b37a6dce-0cf0-11ec-8118-186590e04b4d.jpg')
+IMAGE_PATH = os.path.join(paths['IMAGE_PATH'], 'test', '20210908_190040772_iOS.jpg')
 tf.config.run_functions_eagerly(True)
 img = cv2.imread(IMAGE_PATH)
 image_np = np.array(img)
@@ -75,4 +81,4 @@ viz_utils.visualize_boxes_and_labels_on_image_array(
                 agnostic_mode=False)
 
 plt.imshow(cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB))
-plt.show()
+plt.savefig("detected-image.jpg")

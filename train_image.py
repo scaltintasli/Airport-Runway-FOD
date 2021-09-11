@@ -89,9 +89,9 @@ first_command = "python {files['TF_RECORD_SCRIPT']} -x {os.path.join(paths['IMAG
 second_command = "python files['TF_RECORD_SCRIPT']} -x {os.path.join(paths['IMAGE_PATH'], 'test')} -l {files['LABELMAP']} -o {os.path.join(paths['ANNOTATION_PATH'], 'test.record')}"
 
 TRAINING_SCRIPT = os.path.join(paths['APIMODEL_PATH'], 'research', 'object_detection', 'model_main_tf2.py')
-training_command = "python {} --model_dir={} --pipeline_config_path={}--num_train_steps=2000".format(TRAINING_SCRIPT, paths['CHECKPOINT_PATH'],files['PIPELINE_CONFIG'])
+training_command = "python {} --model_dir={} --pipeline_config_path={} --num_train_steps=2000".format(TRAINING_SCRIPT, paths['CHECKPOINT_PATH'],files['PIPELINE_CONFIG'])
 
-evaluate_command = "python {} --model_dir={} --pipeline_config_path={}--checkpoint_dir={}".format(TRAINING_SCRIPT, paths['CHECKPOINT_PATH'],files['PIPELINE_CONFIG'],paths['CHECKPOINT_PATH'])
+evaluate_command = "python {} --model_dir={} --pipeline_config_path={} --checkpoint_dir={}".format(TRAINING_SCRIPT, paths['CHECKPOINT_PATH'],files['PIPELINE_CONFIG'],paths['CHECKPOINT_PATH'])
 
 print("save these commands and run them")
 print("1-) " + first_command)
