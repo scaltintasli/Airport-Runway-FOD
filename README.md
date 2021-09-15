@@ -8,11 +8,13 @@
 
 2-) Run ‘pipenv install’
 
-3-) Run ‘pipenv shell’
+3-) Run ‘pipenv shell’ then create a new branch git checkout -b "branch-name"
 
 4-) Edit label list and add items to list(these label names should match with images labels and it is case sensetive)
 
-5-) Add images to test folder and train folder(with the .xml files) 6-) run ‘python train_image.py”
+5-) Add images to test folder and train folder(with the .xml files) 
+
+6-) run ‘python train_image.py”
 
 7-) run ‘printed command one by one’
 
