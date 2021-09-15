@@ -85,13 +85,14 @@ with tf.io.gfile.GFile(files["PIPELINE_CONFIG"], "wb") as f:
 
 print("Config File Updated")
 
-first_command = "python {files['TF_RECORD_SCRIPT']} -x {os.path.join(paths['IMAGE_PATH'], 'train')} -l {files['LABELMAP']} -o {os.path.join(paths['ANNOTATION_PATH'], 'train.record')}"
-second_command = "python files['TF_RECORD_SCRIPT']} -x {os.path.join(paths['IMAGE_PATH'], 'test')} -l {files['LABELMAP']} -o {os.path.join(paths['ANNOTATION_PATH'], 'test.record')}"
+first_command = "python {} -x {} -l {} -o {}".format(files['TF_RECORD_SCRIPT'], os.path.join(paths['IMAGE_PATH'], 'train'),
+                         files['LABELMAP'], os.path.join(paths['ANNOTATION_PATH'], 'train.record'))
+second_command = "python {} -x {} -l {} -o {}".format(files['TF_RECORD_SCRIPT'], os.path.join(paths['IMAGE_PATH'], 'test'),files['LABELMAP'], os.path.join(paths['ANNOTATION_PATH'], 'test.record'))
 
 TRAINING_SCRIPT = os.path.join(paths['APIMODEL_PATH'], 'research', 'object_detection', 'model_main_tf2.py')
-training_command = "python {} --model_dir={} --pipeline_config_path={} --num_train_steps=2000".format(TRAINING_SCRIPT, paths['CHECKPOINT_PATH'],files['PIPELINE_CONFIG'])
+training_command = "python {} --model_dir={} --pipeline_config_path={}--num_train_steps=2000".format(TRAINING_SCRIPT, paths['CHECKPOINT_PATH'],files['PIPELINE_CONFIG'])
 
-evaluate_command = "python {} --model_dir={} --pipeline_config_path={} --checkpoint_dir={}".format(TRAINING_SCRIPT, paths['CHECKPOINT_PATH'],files['PIPELINE_CONFIG'],paths['CHECKPOINT_PATH'])
+evaluate_command = "python {} --model_dir={} --pipeline_config_path={}--checkpoint_dir={}".format(TRAINING_SCRIPT, paths['CHECKPOINT_PATH'],files['PIPELINE_CONFIG'],paths['CHECKPOINT_PATH'])
 
 print("save these commands and run them")
 print("1-) " + first_command)

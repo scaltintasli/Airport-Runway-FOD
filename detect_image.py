@@ -50,7 +50,7 @@ files = {
 
 
 category_index = label_map_util.create_category_index_from_labelmap(files['LABELMAP'])
-IMAGE_PATH = os.path.join(paths['IMAGE_PATH'], 'test', '20210908_190040772_iOS.jpg')
+IMAGE_PATH = os.path.join(paths['IMAGE_PATH'], 'test', '20210908_185946435_iOS.jpg')
 tf.config.run_functions_eagerly(True)
 img = cv2.imread(IMAGE_PATH)
 image_np = np.array(img)
@@ -78,6 +78,7 @@ viz_utils.visualize_boxes_and_labels_on_image_array(
                 use_normalized_coordinates=True,
                 max_boxes_to_draw=5,
                 min_score_thresh=.8,
+                line_thickness=25,
                 agnostic_mode=False)
 
 plt.imshow(cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB))
