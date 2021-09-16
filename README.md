@@ -8,9 +8,9 @@
 
 2-) Run ‘pipenv install’
 
-3-) Run ‘pipenv shell’ then run "pip install -r requirements.txt" and then create a new branch git checkout -b "branch-name"
+3-) Run ‘pipenv shell’ then create a new branch git checkout -b "branch-name"
 
-4-) Edit label list and add items to list(these label names should match with images labels and it is case sensetive)
+4-) Edit label list and add items to list(these label names should match with images labels and it is case sensetive). the list is there :https://github.com/scaltintasli/Airport-Runway-FOD/blob/main/train_image.py#L48
 
 5-) Add images to test folder and train folder(with the .xml files) 
 
