@@ -8,10 +8,11 @@
 
 2-) Run ‘pipenv install’
 
-3-) Run ‘pipenv shell’ then create a new branch git checkout -b "branch-name"
+3-) Run ‘pipenv shell’ then create a new branch git checkout -b "branch-name" then run these two:
    
-   `-run 'cd Tensorflow/models/research && protoc object_detection/protos/*.proto --python_out=. && copy object_detection\\packages\\tf2\\setup.py setup.py && python setup.py build && python setup.py install'
-    -and run 'cd Tensorflow/models/research/slim && pip install -e .'`
+   `cd Tensorflow/models/research && protoc object_detection/protos/*.proto --python_out=. && copy object_detection\\packages\\tf2\\setup.py setup.py && python setup.py build && python setup.py install`
+    
+   `'cd Tensorflow/models/research/slim && pip install -e .`
 
 
 4-) Edit label list and add items to list(these label names should match with images labels and it is case sensetive). the list is there :https://github.com/scaltintasli/Airport-Runway-FOD/blob/main/train_image.py#L48
