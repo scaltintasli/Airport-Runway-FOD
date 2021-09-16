@@ -8,7 +8,7 @@
 
 2-) Run ‘pipenv install’
 
-3-) Run ‘pipenv shell’ then create a new branch git checkout -b "branch-name"
+3-) Run ‘pipenv shell’ then run "pip install -r requirements.txt" and then create a new branch git checkout -b "branch-name"
 
 4-) Edit label list and add items to list(these label names should match with images labels and it is case sensetive)
 
