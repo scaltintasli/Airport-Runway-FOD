@@ -2,13 +2,16 @@
 
 1-) Clone this repo
     
-    THEN Go to Tensorflow/models and clone this https://github.com/tensorflow/models
+    THEN Go to Tensorflow and clone this https://github.com/tensorflow/models
     
     And finally go to Tensorflow scripts and clone this https://github.com/nicknochnack/GenerateTFRecord
 
 2-) Run ‘pipenv install’
 
 3-) Run ‘pipenv shell’ then create a new branch git checkout -b "branch-name"
+    -run 'cd Tensorflow/models/research && protoc object_detection/protos/*.proto --python_out=. && copy object_detection\\packages\\tf2\\setup.py setup.py && python setup.py build && python setup.py install'
+    -and run 'cd Tensorflow/models/research/slim && pip install -e .'
+
 
 4-) Edit label list and add items to list(these label names should match with images labels and it is case sensetive). the list is there :https://github.com/scaltintasli/Airport-Runway-FOD/blob/main/train_image.py#L48
 
