@@ -10,7 +10,9 @@ To start, the goals we have identified as most important for this software to ac
     * Bolts, screws, tools, people, animals, and any other large debris
 * The implementation of a machine learning model to recognize FODs
 * The software useability to be friendly enough to be used by airport personnel 
+
 Along with these goals we have also identified the objectives that would be most important to keep track of throughout the development lifecycle of this software. These include:
+
 * Acquiring domain knowledge by talking to experts regarding FOD
 * Using machine learning to detect and recognize the FOD
 * Use phones/cameras/drones/datasets to train a model to detect common types of FOD
