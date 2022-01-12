@@ -6,7 +6,7 @@ In order to complete the task mentioned above there are a series of goals and ob
 
 To start, the goals we have identified as most important for this software to achieve or be capable of doing are as follows:
 
-Markup : * The ability to detect FOD on the runway including:
+* The ability to detect FOD on the runway including:
     * Bolts, screws, tools, people, animals, and any other large debris
 * The implementation of a machine learning model to recognize FODs
 * The software useability to be friendly enough to be used by airport personnel 
