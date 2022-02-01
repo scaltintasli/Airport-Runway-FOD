@@ -22,6 +22,7 @@ Along with these goals we have also identified the objectives that would be most
 * Python 3.8
 * Protoc
 * Tensorflow Object Detection API
+
 if you want to use your GPU:
 * Cuda 11.2
 * CUDDNN 8.2
