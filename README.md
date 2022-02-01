@@ -19,12 +19,12 @@ Along with these goals we have also identified the objectives that would be most
 * Use of notifications notifying airport personnel when FOD is located on a runway/tarmac
 
 ## Requirements
- -Python 3.8
- -Protoc
- -Tensorflow Object Detection API
- if you want to use your GPU:
- -Cuda 11.2
- -CUDDNN 8.2
+* Python 3.8
+* Protoc
+* Tensorflow Object Detection API
+if you want to use your GPU:
+* Cuda 11.2
+* CUDDNN 8.2
 
 ## Installation
 
