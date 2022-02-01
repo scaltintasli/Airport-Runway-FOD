@@ -18,13 +18,29 @@ Along with these goals we have also identified the objectives that would be most
 * Use phones/cameras/drones/datasets to train a model to detect common types of FOD
 * Use of notifications notifying airport personnel when FOD is located on a runway/tarmac
 
+## Requirements
+ -Python 3.8
+ -Protoc
+ -Tensorflow Object Detection API
+ if you want to use your GPU:
+ -Cuda 11.2
+ -CUDDNN 8.2
+
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
 
-```bash
-pip install TDB
+First
+```git clone https://github.com/scaltintasli/Airport-Runway-FOD.git
 ```
+
+Then go Tensorflow and
+```git clone https://github.com/tensorflow/models
+```
+
+Then go to Tensorflow/Scripts
+```git clone https://github.com/nicknochnack/GenerateTFRecord
+```
+
 
 ## Usage
 
