@@ -9,7 +9,7 @@ from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as viz_utils
 from object_detection.builders import model_builder
 from object_detection.utils import config_util
-from load_train_model import detect_fn
+from load_custom_model import detect_fn
 
 CUSTOM_MODEL_NAME = 'my_efficentdet_d2_LuggageTagsAndGloves11-26'
 PRETRAINED_MODEL_NAME = 'ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8'
