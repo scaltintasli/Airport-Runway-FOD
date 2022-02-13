@@ -45,14 +45,14 @@ if you want to use your GPU:
 
 ## Usage
 
-TRANING
+### TRANING
 
 Edit label list and add items to list(these label names should match with images labels and it is case sensetive). the list is there :https://github.com/scaltintasli/Airport-Runway-FOD/blob/main/train_image.py#L48
 
 Add images to test folder and train folder(with the .xml files)
 run ```python train_image.py```
  
-DETECTION
+### DETECTION
 
 Edit load_train_model.py and make sure checkpoint number matches(Tensorflow\workspace\models\modelname)
 
