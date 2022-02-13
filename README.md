@@ -30,65 +30,31 @@ if you want to use your GPU:
 ## Installation
 
 
-First
 ```git clone https://github.com/scaltintasli/Airport-Runway-FOD.git```
 
-Then go Tensorflow and
-```git clone https://github.com/tensorflow/models
-```
+```git clone https://github.com/tensorflow/models```
 
-Then go to Tensorflow/Scripts
-```git clone https://github.com/nicknochnack/GenerateTFRecord
-```
+```git clone https://github.com/nicknochnack/GenerateTFRecord```
+
+```pip install -r requirements.txt```
+
+```cd Tensorflow\models\research && protoc object_detection\protos\*.proto --python_out=. && copy object_detection\packages\tf2\setup.py setup.py && python setup.py build && python setup.py install```
+
+```cd Tensorflow/models/research/slim && pip install -e .```
 
 
 ## Usage
 
-```python
-import TBD
+TRANING
+Edit label list and add items to list(these label names should match with images labels and it is case sensetive). the list is there :https://github.com/scaltintasli/Airport-Runway-FOD/blob/main/train_image.py#L48
 
-# returns 'words'
-TBD.pluralize('word')
+ Add images to test folder and train folder(with the .xml files)
+ run ```python train_image.py```
+ 
+DETECTION
+Edit load_train_model.py and make sure checkpoint number matches(Tensorflow\workspace\models\modelname)
 
-# returns 'geese'
-TBD.pluralize('goose')
+run ```python load_train_model.py```
 
-# returns 'phenomenon'
-TBD.singularize('phenomena')
-```
-1-) Clone this repo
-    
-    THEN Go to Tensorflow and clone this https://github.com/tensorflow/models
-    
-    And finally go to Tensorflow scripts and clone this https://github.com/nicknochnack/GenerateTFRecord
-
-2-) Run ‘pipenv install’
-
-3-) Run ‘pipenv shell’ then create a new branch git checkout -b "branch-name" then run these two:
-   
-   `cd Tensorflow/models/research && protoc object_detection/protos/*.proto --python_out=. && copy object_detection\\packages\\tf2\\setup.py setup.py && python setup.py build && python setup.py install`
-    
-   `cd Tensorflow/models/research/slim && pip install -e .`
-
-
-4-) Edit label list and add items to list(these label names should match with images labels and it is case sensetive). the list is there :https://github.com/scaltintasli/Airport-Runway-FOD/blob/main/train_image.py#L48
-
-5-) Add images to test folder and train folder(with the .xml files) 
-
-6-) run ‘python train_image.py”
-
-7-) run ‘printed command one by one’
-
-8-) first two commands should be really fast
-
-9-) third command for the training so it might take a while to train
-
-10-) This will evaluate the model you need to quit the process in the end with ctrl + C
-
-11-) Edit load_train_model.py and make sure checkpoint number matches
-
-12-) Run ‘python load_train_model.py’
-
-13-) Edit detect_image.py and make sure the image path matches with your image
-
-14-) Then run detect_image.py it should generate a image file in the main folder
+For live detection run ```python live_detection_GUI```
+For Manual test run ```python detect_image.py```
