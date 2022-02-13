@@ -31,8 +31,8 @@ if you want to use your GPU:
 
 
 First
-```git clone https://github.com/scaltintasli/Airport-Runway-FOD.git
-```
+`git clone https://github.com/scaltintasli/Airport-Runway-FOD.git
+`
 
 Then go Tensorflow and
 ```git clone https://github.com/tensorflow/models
