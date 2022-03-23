@@ -7,12 +7,15 @@ from matplotlib import pyplot as plt
 import os
 import playsound
 import tensorflow as tf
+import folium
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as viz_utils
 from object_detection.builders import model_builder
 from object_detection.utils import config_util
-
-threshold = .4
+import base64
+import webbrowser
+import folium
+from folium import IFrame
 
 CUSTOM_MODEL_NAME = 'my_efficentdet_d2_GLTandFirstGoProImages-50k'
 PRETRAINED_MODEL_NAME = 'efficentDet2-FGPandGLT-50k-04.tar.gz'
@@ -82,11 +85,19 @@ time.sleep(2.0)
 sg.theme("Black")
 
 # def webcam col
-cameracolumn_layout = [[sg.Text("Choose how many camera's you want to display", size=(60,1))], [sg.Combo(["1", "2", "3", "4", "5"], key="cameraAmount", default_value="5")]]
+cameracolumn_layout = [[sg.Text("Choose how many camera's you want to display", size=(60,1))], [sg.Combo(["1", "2", "3", "4", "5"], key="cameraAmount", default_value="1")]]
 
 cameracolumn = sg.Column(cameracolumn_layout, element_justification='center', background_color="black")
 
-threshcolumn_layout = [[sg.Text("Choose the threshold you want to use", size=(60,1))], [sg.Combo(["10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], key="threshAmount", default_value=str(int(threshold*100))+'%')]]
+mapbutton_layout = [[sg.Text("Open Map", size=(60,1))], [sg.Button("Open Map", key="mapButton")]]
+
+mapbutton = sg.Column(mapbutton_layout, element_justification='center', background_color="black")
+
+blankcolumn_layout = [[sg.Text("", size=(60,1))], [sg.Text("")]]
+
+blankcolumn = sg.Column(blankcolumn_layout, element_justification='center', background_color="black")
+
+threshcolumn_layout = [[sg.Text("Choose the threshold you want to use", size=(60,1))], [sg.Combo(["10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], key='threshAmount', default_value="40%")]]
 
 threshcolumn = sg.Column(threshcolumn_layout, element_justification='center', background_color="black")
 
@@ -114,7 +125,7 @@ coltextbox_layout = [[sg.Text("Output", size=(60,1), justification="center")],
                         [sg.Multiline(size=(60, 30), key="textbox", autoscroll=True, disabled=True)]]
 coltextbox = sg.Column(coltextbox_layout, element_justification='center')
 
-colslayout = [[cameracolumn, threshcolumn], [colwebcam1, colwebcam2], [colwebcam3, colwebcam4], [colwebcam5, coltextbox]]
+colslayout = [[cameracolumn, mapbutton, threshcolumn], [colwebcam1, colwebcam2, colwebcam3], [colwebcam4, colwebcam5, coltextbox]]
 
 layout = [colslayout]
 
@@ -130,12 +141,93 @@ def detect_fn(image):
     detections = detection_model.postprocess(prediction_dict, shapes)
     return detections
 
-def findScore(scoreValues):
+def findScore(scoreValues, threshold):
     found = []
     found = [i for i, e in enumerate(scoreValues) if e >= threshold]
     return found
 
-def tfBoundingBoxes(frame, detectionKey, detectionKey2):
+def getThreshold(threshString):
+    if (threshString == "10%"):
+        threshold = .1
+    elif (threshString == "20%"):
+        threshold = .2
+    elif (threshString == "30%"):
+        threshold = .3
+    elif (threshString == "40%"):
+        threshold = .4
+    elif (threshString == "50%"):
+        threshold = .5
+    elif (threshString == "60%"):
+        threshold = .6
+    elif (threshString == "70%"):
+        threshold = .7
+    elif (threshString == "80%"):
+        threshold = .8
+    elif (threshString == "90%"):
+        threshold = .9
+    elif (threshString == "100%"):
+        threshold = 1.0
+    else:
+        threshold = .4
+    return threshold
+
+def getCameraAmount(cameraString):
+    if (cameraString == "1"):
+        amount = 1
+    elif (cameraString == "2"):
+        amount = 2
+    elif (cameraString == "3"):
+        amount = 3
+    elif (cameraString == "4"):
+        amount = 4
+    elif (cameraString == "5"):
+        amount = 5
+    else:
+        amount = 1
+    return amount
+
+def openMap():
+    m = folium.Map(location=[45.550120, -94.152411], zoom_start=60)
+    locationlist = [[45.550120, -94.152411], [45.550125, -94.152410]]
+    width = 500
+    height = 500
+
+    fod = [
+        {'ID': 1,
+        'name': "Metal",
+        'point': [45.550120, -94.15238],
+        'image': 'fod-msp-1.png'
+        },
+        {'ID': 2,
+        'name': "Wood",
+        'point': [45.550121, -94.152412],
+        'image': 'fod-msp-2.png'
+        }]
+
+
+    tile = folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(m)
+
+    for obj in fod:
+        encoded = base64.b64encode(open(obj['image'], 'rb').read())
+        html = '<img src="data:image/png;base64, {}" style="height:100%;width:100%;">'.format
+        iframe = IFrame(html(encoded.decode('UTF-8'), width, height))
+        popup = folium.Popup(iframe, min_width=1000, max_width=2650)
+        folium.Marker(obj['point'], popup=popup).add_to(m)
+
+    # for point in locationlist:
+    #    folium.Marker(point, popup="FOD").add_to(m)
+
+    m.save("map.html")
+    webbrowser.open("map.html")
+
+def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
+
     image_np = np.array(frame)
     input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
     detections = detect_fn(input_tensor)
@@ -163,7 +255,7 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2):
 
     frame = cv.resize(image_np_with_detections, frameSize)
 
-    positionList = findScore(detections['detection_scores'])
+    positionList = findScore(detections['detection_scores'], threshold)
     #print(str(positionList) + "list")
     
     if positionList != []:        
@@ -195,17 +287,41 @@ while True:
     if event == sg.WIN_CLOSED:
         break
 
-    ret, frame1 = video_capture1.read()
-    #ret, frame2 = video_capture2.read()
-    #ret, frame3 = video_capture3.read()
-    #ret, frame4 = video_capture4.read()
-    #ret, frame5 = video_capture5.read()
-
-    tfBoundingBoxes(frame1, "cam1", "cam1Update")
-    #tfBoundingBoxes(frame2, "cam2", "cam2Update")
-    #tfBoundingBoxes(frame3, "cam3", "cam3Update")
-    #tfBoundingBoxes(frame4, "cam4", "cam4Update")
-    #tfBoundingBoxes(frame5, "cam5", "cam5Update")
+    if (getCameraAmount(values['cameraAmount']) == 1):
+        ret, frame1 = video_capture1.read()
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']))
+    elif (getCameraAmount(values['cameraAmount']) == 2):
+        ret, frame1 = video_capture1.read()
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']))
+        ret, frame2 = video_capture2.read()
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']))
+    elif (getCameraAmount(values['cameraAmount']) == 3):
+        ret, frame1 = video_capture1.read()
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']))
+        ret, frame2 = video_capture2.read()
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']))
+        ret, frame3 = video_capture3.read()
+        tfBoundingBoxes(frame3, "cam3", "cam3Update", getThreshold(values['threshAmount']))
+    elif (getCameraAmount(values['cameraAmount']) == 4):
+        ret, frame1 = video_capture1.read()
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']))
+        ret, frame2 = video_capture2.read()
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']))
+        ret, frame3 = video_capture3.read()
+        tfBoundingBoxes(frame3, "cam3", "cam3Update", getThreshold(values['threshAmount']))
+        ret, frame4 = video_capture4.read()
+        tfBoundingBoxes(frame4, "cam4", "cam4Update", getThreshold(values['threshAmount']))
+    elif (getCameraAmount(values['cameraAmount']) == 5):
+        ret, frame1 = video_capture1.read()
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']))
+        ret, frame2 = video_capture2.read()
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']))
+        ret, frame3 = video_capture3.read()
+        tfBoundingBoxes(frame3, "cam3", "cam3Update", getThreshold(values['threshAmount']))
+        ret, frame4 = video_capture4.read()
+        tfBoundingBoxes(frame4, "cam4", "cam4Update", getThreshold(values['threshAmount']))
+        ret, frame5 = video_capture5.read()
+        tfBoundingBoxes(frame5, "cam5", "cam5Update", getThreshold(values['threshAmount']))
         
 
 video_capture1.release()
