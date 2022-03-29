@@ -89,7 +89,7 @@ cameracolumn_layout = [[sg.Text("Choose how many camera's you want to display", 
 
 cameracolumn = sg.Column(cameracolumn_layout, element_justification='center', background_color="black")
 
-mapbutton_layout = [[sg.Text("Open Map", size=(60,1))], [sg.Button("Open Map", key="mapButton")]]
+mapbutton_layout = [[sg.Text("Open Map", size=(60,1), justification='center')], [sg.Button('Map')]]
 
 mapbutton = sg.Column(mapbutton_layout, element_justification='center', background_color="black")
 
@@ -131,7 +131,7 @@ layout = [colslayout]
 
 window    = sg.Window("FOD Detection", layout,
                     no_titlebar=False, alpha_channel=1, grab_anywhere=False,
-                    return_keyboard_events=True, location=(100, 100))
+                    return_keyboard_events=True, location=(100, 100)).Finalize()
 
 
 @tf.function
@@ -286,6 +286,8 @@ while True:
 
     if event == sg.WIN_CLOSED:
         break
+    if event == 'Map':
+        openMap()
 
     if (getCameraAmount(values['cameraAmount']) == 1):
         ret, frame1 = video_capture1.read()
