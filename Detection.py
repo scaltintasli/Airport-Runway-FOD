@@ -36,22 +36,4 @@ class Detection:
         long = random.uniform(-94.15178127548012, -94.15303386704261)
         return [lat, long]
 
-if __name__ == "__main__":
 
-    m = folium.Map(location=[45.550120, -94.152411], zoom_start=20)
-
-    tile = folium.TileLayer(
-            tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            attr = 'Esri',
-            name = 'Esri Satellite',
-            overlay = False,
-            control = True
-        ).add_to(m)
-
-    det1 = Detection("wood", m)
-    det2 = Detection("wood", m)
-    det3 = Detection("wood", m)
-    print(det1.id)
-    print(det2.id)
-    print(det3.id)
-    m.save("map.html")
