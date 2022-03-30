@@ -16,6 +16,7 @@ import base64
 import webbrowser
 import folium
 from folium import IFrame
+from Detection import Detection
 
 CUSTOM_MODEL_NAME = 'my_efficentdet_d2_GLTandFirstGoProImages-50k'
 PRETRAINED_MODEL_NAME = 'efficentDet2-FGPandGLT-50k-04.tar.gz'
@@ -97,7 +98,7 @@ blankcolumn_layout = [[sg.Text("", size=(60,1))], [sg.Text("")]]
 
 blankcolumn = sg.Column(blankcolumn_layout, element_justification='center', background_color="black")
 
-threshcolumn_layout = [[sg.Text("Choose the threshold you want to use", size=(60,1))], [sg.Combo(["10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], key='threshAmount', default_value="40%")]]
+threshcolumn_layout = [[sg.Text("Choose the threshold you want to use", size=(60,1))], [sg.Combo(["10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], key='threshAmount', default_value="60%")]]
 
 threshcolumn = sg.Column(threshcolumn_layout, element_justification='center', background_color="black")
 
@@ -132,6 +133,17 @@ layout = [colslayout]
 window    = sg.Window("FOD Detection", layout,
                     no_titlebar=False, alpha_channel=1, grab_anywhere=False,
                     return_keyboard_events=True, location=(100, 100)).Finalize()
+
+# map initializer
+m = folium.Map(location=[45.550120, -94.152411], zoom_start=20)
+
+tile = folium.TileLayer(
+        tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr = 'Esri',
+        name = 'Esri Satellite',
+        overlay = False,
+        control = True
+       ).add_to(m)
 
 
 @tf.function
@@ -186,48 +198,14 @@ def getCameraAmount(cameraString):
         amount = 1
     return amount
 
-def openMap():
-    m = folium.Map(location=[45.550120, -94.152411], zoom_start=60)
-    locationlist = [[45.550120, -94.152411], [45.550125, -94.152410]]
-    width = 500
-    height = 500
-
-    fod = [
-        {'ID': 1,
-        'name': "Metal",
-        'point': [45.550120, -94.15238],
-        'image': 'fod-msp-1.png'
-        },
-        {'ID': 2,
-        'name': "Wood",
-        'point': [45.550121, -94.152412],
-        'image': 'fod-msp-2.png'
-        }]
-
-
-    tile = folium.TileLayer(
-        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attr='Esri',
-        name='Esri Satellite',
-        overlay=False,
-        control=True
-    ).add_to(m)
-
-    for obj in fod:
-        encoded = base64.b64encode(open(obj['image'], 'rb').read())
-        html = '<img src="data:image/png;base64, {}" style="height:100%;width:100%;">'.format
-        iframe = IFrame(html(encoded.decode('UTF-8'), width, height))
-        popup = folium.Popup(iframe, min_width=1000, max_width=2650)
-        folium.Marker(obj['point'], popup=popup).add_to(m)
-
+def openMap(m):
     # for point in locationlist:
     #    folium.Marker(point, popup="FOD").add_to(m)
 
-    m.save("map.html")
+    #m.save("map.html")
     webbrowser.open("map.html")
 
 def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
-
     image_np = np.array(frame)
     input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
     detections = detect_fn(input_tensor)
@@ -263,6 +241,14 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
         window[detectionKey2].Widget.config(background='red')
         #playsound._playsoundWin('alarm.wav')
 
+        det = Detection("placeholderType", m)
+        # Save detection as image:
+        savePath = det.image
+        plt.imshow(cv.cvtColor(image_np_with_detections, cv.COLOR_BGR2RGB))
+        plt.savefig(savePath)
+
+        det.addPoint()
+
         #display to textbox
         for position in positionList:
             if(category_index.get(detections['detection_classes'][position] == detections['detection_classes'][position])):
@@ -287,7 +273,7 @@ while True:
     if event == sg.WIN_CLOSED:
         break
     if event == 'Map':
-        openMap()
+        openMap(m)
 
     if (getCameraAmount(values['cameraAmount']) == 1):
         ret, frame1 = video_capture1.read()
