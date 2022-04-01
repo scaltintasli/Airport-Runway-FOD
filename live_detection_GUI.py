@@ -17,6 +17,22 @@ import webbrowser
 import folium
 from folium import IFrame
 from Detection import Detection
+import os, shutil
+
+def delete_folder_contents(folderPath):
+    for filename in os.listdir(folderPath):
+        file_path = os.path.join(folderPath, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+    print("Contents of folder deleted: " + folderPath)
+
+# Clear detections from past runs
+delete_folder_contents("detectionImages")
 
 CUSTOM_MODEL_NAME = 'my_efficentdet_d2_GLTandFirstGoProImages-50k'
 PRETRAINED_MODEL_NAME = 'efficentDet2-FGPandGLT-50k-04.tar.gz'
