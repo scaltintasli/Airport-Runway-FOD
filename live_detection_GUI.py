@@ -19,6 +19,11 @@ from folium import IFrame
 from Detection import Detection
 import os, shutil
 
+def create_folder(folderName):
+    exists = os.path.exists(folderName)
+    if not exists:
+        os.makedirs(folderName)
+
 def delete_folder_contents(folderPath):
     for filename in os.listdir(folderPath):
         file_path = os.path.join(folderPath, filename)
@@ -30,6 +35,9 @@ def delete_folder_contents(folderPath):
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
     print("Contents of folder deleted: " + folderPath)
+
+# Create folder for storing snapshots of detections (if not already created)
+create_folder("detectionImages")
 
 # Clear detections from past runs
 delete_folder_contents("detectionImages")
