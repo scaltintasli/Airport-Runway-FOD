@@ -18,6 +18,7 @@ import folium
 from folium import IFrame
 from Detection import Detection
 import os, shutil
+from tracker import *
 
 def delete_folder_contents(folderPath):
     for filename in os.listdir(folderPath):
@@ -34,16 +35,19 @@ def delete_folder_contents(folderPath):
 # Clear detections from past runs
 delete_folder_contents("detectionImages")
 
-CUSTOM_MODEL_NAME = 'my_efficentdet_d2_GLTandFirstGoProImages-50k'
+# Create tracker object
+tracker = EuclideanDistTracker()
+
+CUSTOM_MODEL_NAME = 'my_ssd_mobnet'
 PRETRAINED_MODEL_NAME = 'efficentDet2-FGPandGLT-50k-04.tar.gz'
 PRETRAINED_MODEL_URL = 'http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8.tar.gz'
 TF_RECORD_SCRIPT_NAME = 'generate_tfrecord.py'
 LABEL_MAP_NAME = 'label_map.pbtxt'
 #detect_fn = tf.saved_model.load("Tensorflow\workspace\pre-trained-models\ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8\saved_model")
 
-#Efficent det2 path
-d2PathCkpt = 'Tensorflow/workspace/models/my_efficentdet_d2_GLTandFirstGoProImages-50k'
-d2Config = 'Tensorflow/workspace/models/my_efficentdet_d2_GLTandFirstGoProImages-50k/pipeline.config'
+#Model config pathes path
+d2PathCkpt = 'Tensorflow/workspace/models/my_ssd_mobnet'
+d2Config = 'Tensorflow/workspace/models/my_ssd_mobnet/pipeline.config'
 
 # Load pipeline config and build a detection model
 configs = config_util.get_configs_from_pipeline_file(d2Config)
@@ -53,6 +57,7 @@ detection_model = model_builder.build(model_config=configs['model'], is_training
 ckpt = tf.compat.v2.train.Checkpoint(model=detection_model)
 ckpt.restore(os.path.join(d2PathCkpt, 'ckpt-51')).expect_partial()
 
+### Do we ever use this variable in this script? ###
 paths = {
     "WORKSPACE_PATH": os.path.join("Tensorflow", "workspace"),
     "SCRIPTS_PATH": os.path.join("Tensorflow", "scripts"),
@@ -89,9 +94,9 @@ files = {
 category_index = label_map_util.create_category_index_from_labelmap(files['LABELMAP'])
 # Camera Settings
 camera_Width  = 480 # 320 # 480 # 720 # 1080 # 1620
-camera_Heigth = 360 # 240 # 360 # 540 # 810  # 1215
-frameSize = (camera_Width, camera_Heigth)
-video_capture1 = cv.VideoCapture(0)
+camera_Height = 360 # 240 # 360 # 540 # 810  # 1215
+frameSize = (camera_Width, camera_Height)
+video_capture1 = cv.VideoCapture('Video 2.mp4')
 video_capture2 = cv.VideoCapture(1)
 video_capture3 = cv.VideoCapture(2)
 video_capture4 = cv.VideoCapture(3)
@@ -151,7 +156,7 @@ window    = sg.Window("FOD Detection", layout,
                     return_keyboard_events=True, location=(100, 100)).Finalize()
 
 # map initializer
-m = folium.Map(location=[45.550120, -94.152411], zoom_start=20)
+map = folium.Map(location=[45.550120, -94.152411], zoom_start=20)
 
 tile = folium.TileLayer(
         tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -159,7 +164,7 @@ tile = folium.TileLayer(
         name = 'Esri Satellite',
         overlay = False,
         control = True
-       ).add_to(m)
+       ).add_to(map)
 
 
 @tf.function
@@ -174,6 +179,8 @@ def findScore(scoreValues, threshold):
     found = [i for i, e in enumerate(scoreValues) if e >= threshold]
     return found
 
+### Should this be setThreshold? ###
+### Way to use int(threshString) % 10 ? ###
 def getThreshold(threshString):
     if (threshString == "10%"):
         threshold = .1
@@ -214,12 +221,21 @@ def getCameraAmount(cameraString):
         amount = 1
     return amount
 
-def openMap(m):
-    # for point in locationlist:
-    #    folium.Marker(point, popup="FOD").add_to(m)
-
-    #m.save("map.html")
+def openMap():
     webbrowser.open("map.html")
+
+def newDetection():
+    #playsound._playsoundWin('alarm.wav')
+
+    # det object to take image of if it is a new object
+    det = Detection("placeholderType", map)
+    # Save detection as image:
+    savePath = det.image
+    plt.imshow(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
+    plt.savefig(savePath)
+
+    det.addPoint()
+
 
 def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
     image_np = np.array(frame)
@@ -233,39 +249,63 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
     # detection_classes should be ints.
     detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
 
-    label_id_offset = 1
+    listDetections = []
+
+    # Todo : Still need to implement threshold to prevent poor detections
+    # Gets the detection coordinates from the detections object and adds to array for tracking
+    for detect in detections['detection_boxes']:
+        # detect --> [ymin, xmin, ymax, xmax]
+        detect = detections['detection_boxes'][0]
+        x, y, w, h = (detect[1] * camera_Width, detect[0] * camera_Height, detect[3] * camera_Width, detect[2] * camera_Height)
+        listDetections.append([x, y, w, h])
+
+    # label_id_offset = 1
     image_np_with_detections = image_np.copy()
 
-    viz_utils.visualize_boxes_and_labels_on_image_array(
-                image_np_with_detections,
-                detections['detection_boxes'],
-                detections['detection_classes']+label_id_offset,
-                detections['detection_scores'],
-                category_index,
-                use_normalized_coordinates=True,
-                max_boxes_to_draw=5,
-                min_score_thresh=threshold,
-                agnostic_mode=False)
-
+    ### Old Detection Method ###
+    # viz_utils.visualize_boxes_and_labels_on_image_array(
+    #             image_np_with_detections,
+    #             detections['detection_boxes'],
+    #             detections['detection_classes']+label_id_offset,
+    #             detections['detection_scores'],
+    #             category_index,
+    #             use_normalized_coordinates=True,
+    #             max_boxes_to_draw=5,
+    #             min_score_thresh=threshold,
+    #             agnostic_mode=False)
+    #
     frame = cv.resize(image_np_with_detections, frameSize)
 
     positionList = findScore(detections['detection_scores'], threshold)
-    #print(str(positionList) + "list")
-    
+    print(positionList)
+
+    # det object to take image of if it is a new object
+    det = Detection("placeholderType", map)
+
+    # 2. Object Tracking
+    boxes_ids = tracker.update(listDetections, frame, det)
+    for box_id in boxes_ids:
+        x, y, w, h, id = box_id
+        cv.putText(frame, str(id), (int(x), int(y) - 15), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+        cv.rectangle(frame, (int(x), int(y)), (int(w), int(h)), (0, 255, 0), 3)
+
     if positionList != []:        
         window[detectionKey].Widget.config(background='red')
         window[detectionKey2].Widget.config(background='red')
-        #playsound._playsoundWin('alarm.wav')
-
-        det = Detection("placeholderType", m)
-        # Save detection as image:
-        savePath = det.image
-        plt.imshow(cv.cvtColor(image_np_with_detections, cv.COLOR_BGR2RGB))
-        plt.savefig(savePath)
-
-        det.addPoint()
-
+        # #playsound._playsoundWin('alarm.wav')
+        #
+        # ### MOVED TO TRACKER.PY ###
+        # # # det object to take image of if it is a new object
+        # # det = Detection("placeholderType", map)
+        # # # Save detection as image:
+        # # savePath = det.image
+        # # plt.imshow(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
+        # # plt.savefig(savePath)
+        # #
+        # # det.addPoint()
+        #
         #display to textbox
+        # ToDo: Move this to a function to print to log only once? Is it necessary to keep this if we are using 'Object' as label?
         for position in positionList:
             if(category_index.get(detections['detection_classes'][position] == detections['detection_classes'][position])):
                 #print(str(category_index.get(detections['detection_classes'][position]+1)) + " on " + detectionKey)
@@ -289,7 +329,7 @@ while True:
     if event == sg.WIN_CLOSED:
         break
     if event == 'Map':
-        openMap(m)
+        openMap()
 
     if (getCameraAmount(values['cameraAmount']) == 1):
         ret, frame1 = video_capture1.read()

@@ -49,7 +49,6 @@ mypy-extensions==0.4.3
 numpy==1.19.5
 oauth2client==4.1.3
 oauthlib==3.1.1
-object-detection @ file:///Users/can/Desktop/SE490-FOD/Tensorflow/models/research
 opencv-python==4.5.3.56
 opencv-python-headless==4.5.3.56
 opt-einsum==3.3.0

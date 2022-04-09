@@ -1,4 +1,24 @@
 item { 
-	name:'screw'
+	name:'LuggageTag'
 	id:1
+}
+item { 
+	name:'glove'
+	id:2
+}
+item { 
+	name:'pen'
+	id:3
+}
+item { 
+	name:'wood'
+	id:4
+}
+item { 
+	name:'metal'
+	id:5
+}
+item { 
+	name:'cloth'
+	id:6
 }
