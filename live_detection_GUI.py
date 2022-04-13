@@ -18,6 +18,8 @@ import folium
 from folium import IFrame
 from Detection import Detection
 import os, shutil
+from extract_coordinates import *
+
 
 def create_folder(folderName):
     exists = os.path.exists(folderName)
@@ -50,8 +52,8 @@ LABEL_MAP_NAME = 'label_map.pbtxt'
 #detect_fn = tf.saved_model.load("Tensorflow\workspace\pre-trained-models\ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8\saved_model")
 
 #Efficent det2 path
-d2PathCkpt = 'Tensorflow/workspace/models/my_efficentdet_d2_GLTandFirstGoProImages-50k'
-d2Config = 'Tensorflow/workspace/models/my_efficentdet_d2_GLTandFirstGoProImages-50k/pipeline.config'
+d2PathCkpt = 'Tensorflow/workspace/models/my_ssd_mobnet'
+d2Config = 'Tensorflow/workspace/models/my_ssd_mobnet/pipeline.config'
 
 # Load pipeline config and build a detection model
 configs = config_util.get_configs_from_pipeline_file(d2Config)
@@ -158,8 +160,15 @@ window    = sg.Window("FOD Detection", layout,
                     no_titlebar=False, alpha_channel=1, grab_anywhere=False,
                     return_keyboard_events=True, location=(100, 100)).Finalize()
 
-# map initializer
-m = folium.Map(location=[45.550120, -94.152411], zoom_start=20)
+# Initialize GPS controller
+gps_controller = GPS_Controller()
+
+# Initialize map
+try: # if gps is accessible
+    starting_coords = gps_controller.extract_coordinates()
+except: # if unable to access gps
+    starting_coords = [0, 0]
+m = folium.Map(location=starting_coords, zoom_start=20)
 
 tile = folium.TileLayer(
         tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -265,7 +274,7 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
         window[detectionKey2].Widget.config(background='red')
         #playsound._playsoundWin('alarm.wav')
 
-        det = Detection("placeholderType", m)
+        det = Detection("placeholderType", m, gps_controller)
         # Save detection as image:
         savePath = det.image
         plt.imshow(cv.cvtColor(image_np_with_detections, cv.COLOR_BGR2RGB))
