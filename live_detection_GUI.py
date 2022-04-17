@@ -19,6 +19,8 @@ from folium import IFrame
 from Detection import Detection
 import os, shutil
 from extract_coordinates import *
+from threading import Thread
+
 
 
 def create_folder(folderName):
@@ -238,12 +240,7 @@ def openMap(m, detections_list):
 
     for det in detections_list:
         det.addPoint()
-    #m.save("map.html")
 
-    # for point in locationlist:
-    #    folium.Marker(point, popup="FOD").add_to(m)
-
-    #m.save("map.html")
     webbrowser.open("map.html")
 
 def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_list):
@@ -288,8 +285,6 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
         plt.imshow(cv.cvtColor(image_np_with_detections, cv.COLOR_BGR2RGB))
         plt.savefig(savePath)
 
-        
-        #det.addPoint() # ***** Move this to openMap function? *****
         detections_list.append(det) # Add to list of detections (instead of map yet)
 
         #display to textbox
@@ -311,9 +306,19 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
 
 detections_list = []
 
+# Spawn thread for concurrent GPS reading (to bypass Input/Output delay of live reads)
+
+thread = Thread(target=gps_controller.extract_coordinates)
+thread.start()
+
 while True:
     start_time = time.time()
     event, values = window.read(timeout=20)
+
+    if thread.is_alive() == False:
+        print("thread completed")
+        thread = Thread(target=gps_controller.extract_coordinates)
+        thread.start()
 
     if event == sg.WIN_CLOSED:
         break

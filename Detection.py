@@ -18,6 +18,7 @@ class Detection:
         Detection.staticId += 1
         self.image = "detectionImages/" + str(self.id) + ".jpeg"
         #self.addPoint()
+        print("Detection object created at coordinates: " + str(self.point))
 
     def addPoint(self):
         if self.point: # If point is defined
@@ -39,7 +40,8 @@ class Detection:
     # For getting real coordinates from GPS device
     def get_position(self):
         try:
-            coords = self.gps_controller.extract_coordinates()
+            #coords = self.gps_controller.extract_coordinates()
+            coords = self.gps_controller.last_coords
             return coords
         except:
             return None
