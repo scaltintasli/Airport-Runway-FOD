@@ -188,19 +188,12 @@ window    = sg.Window("FOD Detection", layout,
 
 # Initialize GPS controller
 gps_controller = GPS_Controller()
-gps_controller = None
-
-print("Line 189")
 
 try: # if gps is accessible
-    print("Line 192")
     starting_coords = gps_controller.extract_coordinates()
-    print("Line 194")
 except: # if unable to access gps
-    print("Line 196")
     createMap()
 
-print("Line 199")
 def openMap(m, detections_list):
 
     for det in detections_list:
