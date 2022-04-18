@@ -20,6 +20,7 @@ from Detection import Detection
 import os, shutil
 from extract_coordinates import *
 from threading import Thread
+from tracker import *
 
 
 def create_folder(folderName):
@@ -38,6 +39,134 @@ def delete_folder_contents(folderPath):
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
     print("Contents of folder deleted: " + folderPath)
+
+
+@tf.function
+def detect_fn(image):
+    image, shapes = detection_model.preprocess(image)
+    prediction_dict = detection_model.predict(image, shapes)
+    detections = detection_model.postprocess(prediction_dict, shapes)
+    return detections
+
+
+def findScore(scoreValues, threshold):
+    found = []
+    found = [i for i, e in enumerate(scoreValues) if e >= threshold]
+    return found
+
+
+def getThreshold(threshString):
+    if (threshString == "10%"):
+        threshold = .1
+    elif (threshString == "20%"):
+        threshold = .2
+    elif (threshString == "30%"):
+        threshold = .3
+    elif (threshString == "40%"):
+        threshold = .4
+    elif (threshString == "50%"):
+        threshold = .5
+    elif (threshString == "60%"):
+        threshold = .6
+    elif (threshString == "70%"):
+        threshold = .7
+    elif (threshString == "80%"):
+        threshold = .8
+    elif (threshString == "90%"):
+        threshold = .9
+    elif (threshString == "100%"):
+        threshold = 1.0
+    else:
+        threshold = .4
+    return threshold
+
+
+def getCameraAmount(cameraString):
+    if (cameraString == "1"):
+        amount = 1
+    elif (cameraString == "2"):
+        amount = 2
+    elif (cameraString == "3"):
+        amount = 3
+    elif (cameraString == "4"):
+        amount = 4
+    elif (cameraString == "5"):
+        amount = 5
+    else:
+        amount = 1
+    return amount
+
+
+def openMap(m, detections_list):
+    for det in detections_list:
+        det.addPoint()
+
+    webbrowser.open("map.html")
+
+
+def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_list):
+    image_np = np.array(frame)
+    input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
+    detections = detect_fn(input_tensor)
+    num_detections = int(detections.pop('num_detections'))
+    detections = {key: value[0, :num_detections].numpy()
+                  for key, value in detections.items()}
+    detections['num_detections'] = num_detections
+
+    # detection_classes should be ints.
+    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+
+    # label_id_offset = 1
+    # image_np_with_detections = image_np.copy()
+    #
+    # viz_utils.visualize_boxes_and_labels_on_image_array(
+    #             image_np_with_detections,
+    #             detections['detection_boxes'],
+    #             detections['detection_classes']+label_id_offset,
+    #             detections['detection_scores'],
+    #             category_index,
+    #             use_normalized_coordinates=True,
+    #             max_boxes_to_draw=5,
+    #             min_score_thresh=threshold,
+    #             agnostic_mode=False)
+
+    frame = cv.resize(image_np, frameSize)
+
+    positionList = findScore(detections['detection_scores'], threshold)
+    # print(str(positionList) + "list")
+
+    if positionList != []:
+        window[detectionKey].Widget.config(background='red')
+        window[detectionKey2].Widget.config(background='red')
+        # playsound._playsoundWin('alarm.wav')
+
+        det = Detection("placeholderType", m, gps_controller)
+        # Save detection as image:
+        savePath = det.image
+        plt.imshow(cv.cvtColor(image_np, cv.COLOR_BGR2RGB))
+        plt.savefig(savePath)
+
+        detections_list.append(det)  # Add to list of detections (instead of map yet)
+
+        # display to textbox
+        for position in positionList:
+            if (
+            category_index.get(detections['detection_classes'][position] == detections['detection_classes'][position])):
+                # print(str(category_index.get(detections['detection_classes'][position]+1)) + " on " + detectionKey)
+                window["textbox"].update(window["textbox"].get() + "\n" + str(
+                    category_index.get(detections['detection_classes'][position] + 1)) + " on " + detectionKey)
+                with open("Log.txt", "wt") as text_file:
+                    text_file.write(str(window["textbox"].get()))
+
+        # print(str(detections['detection_classes']) + "was found on " + detectionKey)
+    else:
+        window[detectionKey].Widget.config(background='black')
+        window[detectionKey2].Widget.config(background='black')
+
+    # Update camera
+    imgbytes = cv.imencode(".png", frame)[1].tobytes()
+    window[detectionKey].update(data=imgbytes)
+
 
 # Create folder for storing snapshots of detections (if not already created)
 create_folder("detectionImages")
@@ -163,6 +292,9 @@ window    = sg.Window("FOD Detection", layout,
 # Initialize GPS controller
 gps_controller = GPS_Controller()
 
+#Initialize object tracking object
+tracker = EuclideanDistTracker()
+
 # Initialize map
 try: # if gps is accessible
     starting_coords = gps_controller.extract_coordinates()
@@ -180,127 +312,6 @@ tile = folium.TileLayer(
         overlay = False,
         control = True
        ).add_to(m)
-
-
-@tf.function
-def detect_fn(image):
-    image, shapes = detection_model.preprocess(image)
-    prediction_dict = detection_model.predict(image, shapes)
-    detections = detection_model.postprocess(prediction_dict, shapes)
-    return detections
-
-def findScore(scoreValues, threshold):
-    found = []
-    found = [i for i, e in enumerate(scoreValues) if e >= threshold]
-    return found
-
-def getThreshold(threshString):
-    if (threshString == "10%"):
-        threshold = .1
-    elif (threshString == "20%"):
-        threshold = .2
-    elif (threshString == "30%"):
-        threshold = .3
-    elif (threshString == "40%"):
-        threshold = .4
-    elif (threshString == "50%"):
-        threshold = .5
-    elif (threshString == "60%"):
-        threshold = .6
-    elif (threshString == "70%"):
-        threshold = .7
-    elif (threshString == "80%"):
-        threshold = .8
-    elif (threshString == "90%"):
-        threshold = .9
-    elif (threshString == "100%"):
-        threshold = 1.0
-    else:
-        threshold = .4
-    return threshold
-
-def getCameraAmount(cameraString):
-    if (cameraString == "1"):
-        amount = 1
-    elif (cameraString == "2"):
-        amount = 2
-    elif (cameraString == "3"):
-        amount = 3
-    elif (cameraString == "4"):
-        amount = 4
-    elif (cameraString == "5"):
-        amount = 5
-    else:
-        amount = 1
-    return amount
-
-def openMap(m, detections_list):
-
-    for det in detections_list:
-        det.addPoint()
-
-    webbrowser.open("map.html")
-
-def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_list):
-    image_np = np.array(frame)
-    input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
-    detections = detect_fn(input_tensor)
-    num_detections = int(detections.pop('num_detections'))
-    detections = {key: value[0, :num_detections].numpy()
-                  for key, value in detections.items()}
-    detections['num_detections'] = num_detections
-
-    # detection_classes should be ints.
-    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
-
-    # label_id_offset = 1
-    # image_np_with_detections = image_np.copy()
-    #
-    # viz_utils.visualize_boxes_and_labels_on_image_array(
-    #             image_np_with_detections,
-    #             detections['detection_boxes'],
-    #             detections['detection_classes']+label_id_offset,
-    #             detections['detection_scores'],
-    #             category_index,
-    #             use_normalized_coordinates=True,
-    #             max_boxes_to_draw=5,
-    #             min_score_thresh=threshold,
-    #             agnostic_mode=False)
-
-    frame = cv.resize(image_np, frameSize)
-
-    positionList = findScore(detections['detection_scores'], threshold)
-    #print(str(positionList) + "list")
-    
-    if positionList != []:        
-        window[detectionKey].Widget.config(background='red')
-        window[detectionKey2].Widget.config(background='red')
-        #playsound._playsoundWin('alarm.wav')
-
-        det = Detection("placeholderType", m, gps_controller)
-        # Save detection as image:
-        savePath = det.image
-        plt.imshow(cv.cvtColor(image_np, cv.COLOR_BGR2RGB))
-        plt.savefig(savePath)
-
-        detections_list.append(det) # Add to list of detections (instead of map yet)
-
-        #display to textbox
-        for position in positionList:
-            if(category_index.get(detections['detection_classes'][position] == detections['detection_classes'][position])):
-                #print(str(category_index.get(detections['detection_classes'][position]+1)) + " on " + detectionKey)
-                window["textbox"].update(window["textbox"].get() + "\n" + str(category_index.get(detections['detection_classes'][position]+1)) + " on " + detectionKey)
-                with open("Log.txt", "wt") as text_file:
-                    text_file.write(str(window["textbox"].get()))
-
-        #print(str(detections['detection_classes']) + "was found on " + detectionKey)
-    else:
-        window[detectionKey].Widget.config(background='black')
-        window[detectionKey2].Widget.config(background='black')
-
-    #Update camera
-    imgbytes = cv.imencode(".png", frame)[1].tobytes()
-    window[detectionKey].update(data=imgbytes)
 
 detections_list = []
 
