@@ -10,8 +10,8 @@ class Detection:
 
     staticId = 1
 
-    def __init__(self, fod_type, m):
-        self.fod_type = fod_type
+    def __init__(self, m):
+        #self.fod_type = fod_type
         self.point = self.get_position()
         self.m = m
         self.id = self.staticId

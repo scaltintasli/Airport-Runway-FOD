@@ -19,6 +19,7 @@ from folium import IFrame
 from Detection import Detection
 import os, shutil
 from tracker import *
+from extract_coordinates import *
 
 def delete_folder_contents(folderPath):
     for filename in os.listdir(folderPath):
@@ -32,16 +33,69 @@ def delete_folder_contents(folderPath):
             print('Failed to delete %s. Reason: %s' % (file_path, e))
     print("Contents of folder deleted: " + folderPath)
 
+def createMap():
+    # map initializer
+    map = folium.Map(location=[45.550120, -94.152411], zoom_start=20)
+
+    tile = folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(map)
+
+    return map
+
+def openMap():
+    webbrowser.open("map.html")
+
+@tf.function
+def detect_fn(image):
+    image, shapes = detection_model.preprocess(image)
+    prediction_dict = detection_model.predict(image, shapes)
+    detections = detection_model.postprocess(prediction_dict, shapes)
+    return detections
+
+def findScore(scoreValues, threshold):
+    found = [i for i, e in enumerate(scoreValues) if e >= threshold]
+    return found
+
+def setThreshold(threshString):
+    threshold = int(threshString[:-1])
+    return threshold / 100
+
+def getCameraAmount(cameraString):
+    amount = int(cameraString)
+    return amount
+
+def newDetection():
+    #playsound._playsoundWin('alarm.wav')
+    # det object
+    det = Detection("placeholderType", map)
+    # Save detection as image done in the tracker.py file
+    detList.append(det)
+
+def getCameraChoice(choice):
+    choiceInt = int(choice)
+    if choiceInt == 1:
+       frame = video_capture1.read()
+    elif choiceInt == 2:
+       frame = video_capture2.read()
+    elif choiceInt == 3:
+       frame = video_capture3.read()
+    elif choiceInt == 4:
+       frame = video_capture4.read()
+    elif choiceInt == 5:
+       frame = video_capture5.read()
+    return frame
+
 # Clear detections from past runs
 delete_folder_contents("detectionImages")
 
 # Create tracker object
 tracker = EuclideanDistTracker()
 
-CUSTOM_MODEL_NAME = 'my_ssd_mobnet'
-PRETRAINED_MODEL_NAME = 'efficentDet2-FGPandGLT-50k-04.tar.gz'
-PRETRAINED_MODEL_URL = 'http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8.tar.gz'
-TF_RECORD_SCRIPT_NAME = 'generate_tfrecord.py'
 LABEL_MAP_NAME = 'label_map.pbtxt'
 #detect_fn = tf.saved_model.load("Tensorflow\workspace\pre-trained-models\ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8\saved_model")
 
@@ -57,41 +111,7 @@ detection_model = model_builder.build(model_config=configs['model'], is_training
 ckpt = tf.compat.v2.train.Checkpoint(model=detection_model)
 ckpt.restore(os.path.join(d2PathCkpt, 'ckpt-51')).expect_partial()
 
-### Do we ever use this variable in this script? ###
-paths = {
-    "WORKSPACE_PATH": os.path.join("Tensorflow", "workspace"),
-    "SCRIPTS_PATH": os.path.join("Tensorflow", "scripts"),
-    "APIMODEL_PATH": os.path.join("Tensorflow", "models"),
-    "ANNOTATION_PATH": os.path.join("Tensorflow", "workspace", "annotations"),
-    "IMAGE_PATH": os.path.join("Tensorflow", "workspace", "images"),
-    "MODEL_PATH": os.path.join("Tensorflow", "workspace", "models"),
-    "PRETRAINED_MODEL_PATH": os.path.join(
-        "Tensorflow", "workspace", "pre-trained-models"
-    ),
-    "CHECKPOINT_PATH": os.path.join(
-        "Tensorflow", "workspace", "models", CUSTOM_MODEL_NAME
-    ),
-    "OUTPUT_PATH": os.path.join(
-        "Tensorflow", "workspace", "models", CUSTOM_MODEL_NAME, "export"
-    ),
-    "TFJS_PATH": os.path.join(
-        "Tensorflow", "workspace", "models", CUSTOM_MODEL_NAME, "tfjsexport"
-    ),
-    "TFLITE_PATH": os.path.join(
-        "Tensorflow", "workspace", "models", CUSTOM_MODEL_NAME, "tfliteexport"
-    ),
-    "PROTOC_PATH": os.path.join("Tensorflow", "protoc"),
-}
-
-files = {
-    "PIPELINE_CONFIG": os.path.join(
-        "Tensorflow", "workspace", "models", CUSTOM_MODEL_NAME, "pipeline.config"
-    ),
-    "TF_RECORD_SCRIPT": os.path.join(paths["SCRIPTS_PATH"], TF_RECORD_SCRIPT_NAME),
-    "LABELMAP": os.path.join(paths["ANNOTATION_PATH"], LABEL_MAP_NAME),
-}
-
-category_index = label_map_util.create_category_index_from_labelmap(files['LABELMAP'])
+category_index = label_map_util.create_category_index_from_labelmap(LABEL_MAP_NAME)
 # Camera Settings
 camera_Width  = 480 # 320 # 480 # 720 # 1080 # 1620
 camera_Height = 360 # 240 # 360 # 540 # 810  # 1215
@@ -155,87 +175,13 @@ window    = sg.Window("FOD Detection", layout,
                     no_titlebar=False, alpha_channel=1, grab_anywhere=False,
                     return_keyboard_events=True, location=(100, 100)).Finalize()
 
-# map initializer
-map = folium.Map(location=[45.550120, -94.152411], zoom_start=20)
+# Initialize GPS controller
+gps_controller = GPS_Controller()
 
-tile = folium.TileLayer(
-        tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attr = 'Esri',
-        name = 'Esri Satellite',
-        overlay = False,
-        control = True
-       ).add_to(map)
-
-
-@tf.function
-def detect_fn(image):
-    image, shapes = detection_model.preprocess(image)
-    prediction_dict = detection_model.predict(image, shapes)
-    detections = detection_model.postprocess(prediction_dict, shapes)
-    return detections
-
-def findScore(scoreValues, threshold):
-    found = []
-    found = [i for i, e in enumerate(scoreValues) if e >= threshold]
-    return found
-
-### Should this be setThreshold? ###
-### Way to use int(threshString) % 10 ? ###
-def getThreshold(threshString):
-    if (threshString == "10%"):
-        threshold = .1
-    elif (threshString == "20%"):
-        threshold = .2
-    elif (threshString == "30%"):
-        threshold = .3
-    elif (threshString == "40%"):
-        threshold = .4
-    elif (threshString == "50%"):
-        threshold = .5
-    elif (threshString == "60%"):
-        threshold = .6
-    elif (threshString == "70%"):
-        threshold = .7
-    elif (threshString == "80%"):
-        threshold = .8
-    elif (threshString == "90%"):
-        threshold = .9
-    elif (threshString == "100%"):
-        threshold = 1.0
-    else:
-        threshold = .4
-    return threshold
-
-def getCameraAmount(cameraString):
-    if (cameraString == "1"):
-        amount = 1
-    elif (cameraString == "2"):
-        amount = 2
-    elif (cameraString == "3"):
-        amount = 3
-    elif (cameraString == "4"):
-        amount = 4
-    elif (cameraString == "5"):
-        amount = 5
-    else:
-        amount = 1
-    return amount
-
-def openMap():
-    webbrowser.open("map.html")
-
-def newDetection():
-    #playsound._playsoundWin('alarm.wav')
-
-    # det object to take image of if it is a new object
-    det = Detection("placeholderType", map)
-    # Save detection as image:
-    savePath = det.image
-    plt.imshow(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
-    plt.savefig(savePath)
-
-    det.addPoint()
-
+try: # if gps is accessible
+    starting_coords = gps_controller.extract_coordinates()
+except: # if unable to access gps
+    createMap()
 
 def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
     image_np = np.array(frame)
@@ -249,40 +195,25 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
     # detection_classes should be ints.
     detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
 
+    #Used for object tracking
     listDetections = []
 
-    # Todo : Still need to implement threshold to prevent poor detections
+    #List of the objects position in array above certain threshold
+    positionList = findScore(detections['detection_scores'], threshold)
+
     # Gets the detection coordinates from the detections object and adds to array for tracking
-    for detect in detections['detection_boxes']:
+    for position in positionList:
         # detect --> [ymin, xmin, ymax, xmax]
-        detect = detections['detection_boxes'][0]
+        detect = detections['detection_boxes'][position]
         x, y, w, h = (detect[1] * camera_Width, detect[0] * camera_Height, detect[3] * camera_Width, detect[2] * camera_Height)
         listDetections.append([x, y, w, h])
 
-    # label_id_offset = 1
-    image_np_with_detections = image_np.copy()
-
-    ### Old Detection Method ###
-    # viz_utils.visualize_boxes_and_labels_on_image_array(
-    #             image_np_with_detections,
-    #             detections['detection_boxes'],
-    #             detections['detection_classes']+label_id_offset,
-    #             detections['detection_scores'],
-    #             category_index,
-    #             use_normalized_coordinates=True,
-    #             max_boxes_to_draw=5,
-    #             min_score_thresh=threshold,
-    #             agnostic_mode=False)
-    #
-    frame = cv.resize(image_np_with_detections, frameSize)
-
-    positionList = findScore(detections['detection_scores'], threshold)
-    print(positionList)
+    frame = cv.resize(image_np, frameSize)
 
     # det object to take image of if it is a new object
-    det = Detection("placeholderType", map)
+    det = Detection(map)
 
-    # 2. Object Tracking
+    # Object Tracking
     boxes_ids = tracker.update(listDetections, frame, det)
     for box_id in boxes_ids:
         x, y, w, h, id = box_id
@@ -292,18 +223,7 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
     if positionList != []:        
         window[detectionKey].Widget.config(background='red')
         window[detectionKey2].Widget.config(background='red')
-        # #playsound._playsoundWin('alarm.wav')
-        #
-        # ### MOVED TO TRACKER.PY ###
-        # # # det object to take image of if it is a new object
-        # # det = Detection("placeholderType", map)
-        # # # Save detection as image:
-        # # savePath = det.image
-        # # plt.imshow(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
-        # # plt.savefig(savePath)
-        # #
-        # # det.addPoint()
-        #
+
         #display to textbox
         # ToDo: Move this to a function to print to log only once? Is it necessary to keep this if we are using 'Object' as label?
         for position in positionList:
@@ -331,41 +251,41 @@ while True:
     if event == 'Map':
         openMap()
 
-    if (getCameraAmount(values['cameraAmount']) == 1):
-        ret, frame1 = video_capture1.read()
-        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']))
-    elif (getCameraAmount(values['cameraAmount']) == 2):
-        ret, frame1 = video_capture1.read()
-        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']))
-        ret, frame2 = video_capture2.read()
-        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']))
-    elif (getCameraAmount(values['cameraAmount']) == 3):
-        ret, frame1 = video_capture1.read()
-        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']))
-        ret, frame2 = video_capture2.read()
-        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']))
-        ret, frame3 = video_capture3.read()
-        tfBoundingBoxes(frame3, "cam3", "cam3Update", getThreshold(values['threshAmount']))
-    elif (getCameraAmount(values['cameraAmount']) == 4):
-        ret, frame1 = video_capture1.read()
-        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']))
-        ret, frame2 = video_capture2.read()
-        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']))
-        ret, frame3 = video_capture3.read()
-        tfBoundingBoxes(frame3, "cam3", "cam3Update", getThreshold(values['threshAmount']))
-        ret, frame4 = video_capture4.read()
-        tfBoundingBoxes(frame4, "cam4", "cam4Update", getThreshold(values['threshAmount']))
-    elif (getCameraAmount(values['cameraAmount']) == 5):
-        ret, frame1 = video_capture1.read()
-        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']))
-        ret, frame2 = video_capture2.read()
-        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']))
-        ret, frame3 = video_capture3.read()
-        tfBoundingBoxes(frame3, "cam3", "cam3Update", getThreshold(values['threshAmount']))
-        ret, frame4 = video_capture4.read()
-        tfBoundingBoxes(frame4, "cam4", "cam4Update", getThreshold(values['threshAmount']))
-        ret, frame5 = video_capture5.read()
-        tfBoundingBoxes(frame5, "cam5", "cam5Update", getThreshold(values['threshAmount']))
+    if (cameraAmount == 1):
+        ret, frame1 = getCameraChoice(values['choice1'])
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
+    elif (cameraAmount == 2):
+        ret, frame1 = getCameraChoice(values['choice1'])
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
+        ret, frame2 = getCameraChoice(values['choice2'])
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
+    elif (cameraAmount == 3):
+        ret, frame1 = getCameraChoice(values['choice1'])
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
+        ret, frame2 = getCameraChoice(values['choice2'])
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
+        ret, frame3 = getCameraChoice(values['choice3'])
+        tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
+    elif (cameraAmount == 4):
+        ret, frame1 = getCameraChoice(values['choice1'])
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
+        ret, frame2 = getCameraChoice(values['choice2'])
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
+        ret, frame3 = getCameraChoice(values['choice3'])
+        tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
+        ret, frame4 = getCameraChoice(values['choice4'])
+        tfBoundingBoxes(frame4, "cam4", "cam4Update", threshold)
+    elif (cameraAmount == 5):
+        ret, frame1 = getCameraChoice(values['choice1'])
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
+        ret, frame2 = getCameraChoice(values['choice2'])
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
+        ret, frame3 = getCameraChoice(values['choice3'])
+        tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
+        ret, frame4 = getCameraChoice(values['choice4'])
+        tfBoundingBoxes(frame4, "cam4", "cam4Update", threshold)
+        ret, frame5 = getCameraChoice(values['choice5'])
+        tfBoundingBoxes(frame5, "cam5", "cam5Update", threshold)
         
 
 video_capture1.release()

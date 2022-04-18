@@ -43,14 +43,14 @@ class EuclideanDistTracker:
                 self.center_points[self.id_count] = (cx, cy)
                 objects_bbs_ids.append([x, y, w, h, self.id_count])
                 self.id_count += 1
-                import live_detection_GUI
+                #import live_detection_GUI
                 #live_detection_GUI.newDetection()
                 # Save detection as image:
                 savePath = det.image
                 plt.imshow(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
                 plt.savefig(savePath)
 
-                det.addPoint()
+                #det.addPoint()
 
 
 
