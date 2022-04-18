@@ -54,55 +54,17 @@ def findScore(scoreValues, threshold):
     found = [i for i, e in enumerate(scoreValues) if e >= threshold]
     return found
 
-
 def getThreshold(threshString):
-    if (threshString == "10%"):
-        threshold = .1
-    elif (threshString == "20%"):
-        threshold = .2
-    elif (threshString == "30%"):
-        threshold = .3
-    elif (threshString == "40%"):
-        threshold = .4
-    elif (threshString == "50%"):
-        threshold = .5
-    elif (threshString == "60%"):
-        threshold = .6
-    elif (threshString == "70%"):
-        threshold = .7
-    elif (threshString == "80%"):
-        threshold = .8
-    elif (threshString == "90%"):
-        threshold = .9
-    elif (threshString == "100%"):
-        threshold = 1.0
-    else:
-        threshold = .4
-    return threshold
-
+    return int(threshString[:-1]) / 100
 
 def getCameraAmount(cameraString):
-    if (cameraString == "1"):
-        amount = 1
-    elif (cameraString == "2"):
-        amount = 2
-    elif (cameraString == "3"):
-        amount = 3
-    elif (cameraString == "4"):
-        amount = 4
-    elif (cameraString == "5"):
-        amount = 5
-    else:
-        amount = 1
-    return amount
-
+    return int(cameraString)
 
 def openMap(m, detections_list):
     for det in detections_list:
         det.addPoint()
 
     webbrowser.open("map.html")
-
 
 def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_list):
     image_np = np.array(frame)
@@ -122,6 +84,7 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
     #List of objects position in detections[] with a certain threshold
     positionList = findScore(detections['detection_scores'], threshold)
 
+    ### Old way of creating labels ###
     # label_id_offset = 1
     # image_np_with_detections = image_np.copy()
     #
@@ -187,11 +150,7 @@ create_folder("detectionImages")
 # Clear detections from past runs
 delete_folder_contents("detectionImages")
 
-CUSTOM_MODEL_NAME = 'my_efficentdet_d2_GLTandFirstGoProImages-50k'
-PRETRAINED_MODEL_NAME = 'efficentDet2-FGPandGLT-50k-04.tar.gz'
-PRETRAINED_MODEL_URL = 'http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8.tar.gz'
-TF_RECORD_SCRIPT_NAME = 'generate_tfrecord.py'
-LABEL_MAP_NAME = 'label_map.pbtxt'
+LABEL_MAP_NAME = 'Tensorflow/workspace/annotations/label_map.pbtxt'
 
 #Model path
 d2PathCkpt = 'Tensorflow/workspace/models/my_ssd_mobnet'
@@ -205,40 +164,7 @@ detection_model = model_builder.build(model_config=configs['model'], is_training
 ckpt = tf.compat.v2.train.Checkpoint(model=detection_model)
 ckpt.restore(os.path.join(d2PathCkpt, 'ckpt-51')).expect_partial()
 
-paths = {
-    "WORKSPACE_PATH": os.path.join("Tensorflow", "workspace"),
-    "SCRIPTS_PATH": os.path.join("Tensorflow", "scripts"),
-    "APIMODEL_PATH": os.path.join("Tensorflow", "models"),
-    "ANNOTATION_PATH": os.path.join("Tensorflow", "workspace", "annotations"),
-    "IMAGE_PATH": os.path.join("Tensorflow", "workspace", "images"),
-    "MODEL_PATH": os.path.join("Tensorflow", "workspace", "models"),
-    "PRETRAINED_MODEL_PATH": os.path.join(
-        "Tensorflow", "workspace", "pre-trained-models"
-    ),
-    "CHECKPOINT_PATH": os.path.join(
-        "Tensorflow", "workspace", "models", CUSTOM_MODEL_NAME
-    ),
-    "OUTPUT_PATH": os.path.join(
-        "Tensorflow", "workspace", "models", CUSTOM_MODEL_NAME, "export"
-    ),
-    "TFJS_PATH": os.path.join(
-        "Tensorflow", "workspace", "models", CUSTOM_MODEL_NAME, "tfjsexport"
-    ),
-    "TFLITE_PATH": os.path.join(
-        "Tensorflow", "workspace", "models", CUSTOM_MODEL_NAME, "tfliteexport"
-    ),
-    "PROTOC_PATH": os.path.join("Tensorflow", "protoc"),
-}
-
-files = {
-    "PIPELINE_CONFIG": os.path.join(
-        "Tensorflow", "workspace", "models", CUSTOM_MODEL_NAME, "pipeline.config"
-    ),
-    "TF_RECORD_SCRIPT": os.path.join(paths["SCRIPTS_PATH"], TF_RECORD_SCRIPT_NAME),
-    "LABELMAP": os.path.join(paths["ANNOTATION_PATH"], LABEL_MAP_NAME),
-}
-
-category_index = label_map_util.create_category_index_from_labelmap(files['LABELMAP'])
+category_index = label_map_util.create_category_index_from_labelmap(LABEL_MAP_NAME)
 # Camera Settings
 camera_Width  = 480 # 320 # 480 # 720 # 1080 # 1620
 camera_Height = 360 # 240 # 360 # 540 # 810  # 1215
@@ -298,7 +224,7 @@ colslayout = [[cameracolumn, mapbutton, threshcolumn], [colwebcam1, colwebcam2, 
 
 layout = [colslayout]
 
-window    = sg.Window("FOD Detection", layout,
+window = sg.Window("FOD Detection", layout,
                     no_titlebar=False, alpha_channel=1, grab_anywhere=False,
                     return_keyboard_events=True, location=(100, 100)).Finalize()
 
@@ -313,7 +239,8 @@ try: # if gps is accessible
     starting_coords = gps_controller.extract_coordinates()
 except: # if unable to access gps
     starting_coords = None
-if starting_coords == None:
+
+if starting_coords is None:
     print("unable to get starting coordinates - defaulting to 0,0")
     starting_coords = [0, 0]
 m = folium.Map(location=starting_coords, zoom_start=20)
@@ -329,7 +256,6 @@ tile = folium.TileLayer(
 detections_list = []
 
 # Spawn thread for concurrent GPS reading (to bypass Input/Output delay of live reads)
-
 thread = Thread(target=gps_controller.extract_coordinates)
 thread.start()
 
