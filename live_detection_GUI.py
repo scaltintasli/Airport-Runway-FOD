@@ -98,6 +98,71 @@ def getCameraChoice(choice):
        frame = video_capture5.read()
     return frame
 
+def openMap(m, detections_list):
+    for det in detections_list:
+        det.addPoint()
+
+    webbrowser.open("map.html")
+
+def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_list):
+    image_np = np.array(frame)
+    input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
+    detections = detect_fn(input_tensor)
+    num_detections = int(detections.pop('num_detections'))
+    detections = {key: value[0, :num_detections].numpy()
+                  for key, value in detections.items()}
+    detections['num_detections'] = num_detections
+
+    # detection_classes should be ints.
+    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+
+    #Used for object tracking
+    listDetections = []
+
+    #List of the objects position in array above certain threshold
+    positionList = findScore(detections['detection_scores'], threshold)
+
+    # Gets the detection coordinates from the detections object and adds to array for tracking
+    for position in positionList:
+        # detect --> [ymin, xmin, ymax, xmax]
+        detect = detections['detection_boxes'][position]
+        x, y, w, h = (detect[1] * camera_Width, detect[0] * camera_Height, detect[3] * camera_Width, detect[2] * camera_Height)
+        listDetections.append([x, y, w, h])
+
+    frame = cv.resize(image_np, frameSize)
+
+    # det object to take image of if it is a new object
+    det = Detection(map)
+
+    # Object Tracking
+    boxes_ids = tracker.update(listDetections, frame, det)
+    for box_id in boxes_ids:
+        x, y, w, h, id = box_id
+        cv.putText(frame, str(id), (int(x), int(y) - 15), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+        cv.rectangle(frame, (int(x), int(y)), (int(w), int(h)), (0, 255, 0), 3)
+
+    if positionList != []:
+        window[detectionKey].Widget.config(background='red')
+        window[detectionKey2].Widget.config(background='red')
+
+        #display to textbox
+        # ToDo: Move this to a function to print to log only once? Is it necessary to keep this if we are using 'Object' as label?
+        for position in positionList:
+            if(category_index.get(detections['detection_classes'][position] == detections['detection_classes'][position])):
+                #print(str(category_index.get(detections['detection_classes'][position]+1)) + " on " + detectionKey)
+                window["textbox"].update(window["textbox"].get() + "\n" + str(category_index.get(detections['detection_classes'][position]+1)) + " on " + detectionKey)
+                with open("Log.txt", "wt") as text_file:
+                    text_file.write(str(window["textbox"].get()))
+
+        #print(str(detections['detection_classes']) + "was found on " + detectionKey)
+    else:
+        window[detectionKey].Widget.config(background='black')
+        window[detectionKey2].Widget.config(background='black')
+
+    #Update camera
+    imgbytes = cv.imencode(".png", frame)[1].tobytes()
+    window[detectionKey].update(data=imgbytes)
+
 # Create folder for storing snapshots of detections (if not already created)
 create_folder("detectionImages")
 
@@ -194,79 +259,9 @@ try: # if gps is accessible
 except: # if unable to access gps
     createMap()
 
-def openMap(m, detections_list):
-
-    for det in detections_list:
-        det.addPoint()
-
-    webbrowser.open("map.html")
-
-def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_list):
-    image_np = np.array(frame)
-    input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
-    detections = detect_fn(input_tensor)
-    num_detections = int(detections.pop('num_detections'))
-    detections = {key: value[0, :num_detections].numpy()
-                  for key, value in detections.items()}
-    detections['num_detections'] = num_detections
-
-    # detection_classes should be ints.
-    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
-
-    #Used for object tracking
-    listDetections = []
-
-    #List of the objects position in array above certain threshold
-    positionList = findScore(detections['detection_scores'], threshold)
-
-    # Gets the detection coordinates from the detections object and adds to array for tracking
-    for position in positionList:
-        # detect --> [ymin, xmin, ymax, xmax]
-        detect = detections['detection_boxes'][position]
-        x, y, w, h = (detect[1] * camera_Width, detect[0] * camera_Height, detect[3] * camera_Width, detect[2] * camera_Height)
-        listDetections.append([x, y, w, h])
-
-    frame = cv.resize(image_np, frameSize)
-
-    # det object to take image of if it is a new object
-    det = Detection(map)
-
-    # Object Tracking
-    boxes_ids = tracker.update(listDetections, frame, det)
-    for box_id in boxes_ids:
-        x, y, w, h, id = box_id
-        cv.putText(frame, str(id), (int(x), int(y) - 15), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
-        cv.rectangle(frame, (int(x), int(y)), (int(w), int(h)), (0, 255, 0), 3)
-
-    if positionList != []:        
-        window[detectionKey].Widget.config(background='red')
-        window[detectionKey2].Widget.config(background='red')
-
-        #display to textbox
-        # ToDo: Move this to a function to print to log only once? Is it necessary to keep this if we are using 'Object' as label?
-        for position in positionList:
-            if(category_index.get(detections['detection_classes'][position] == detections['detection_classes'][position])):
-                #print(str(category_index.get(detections['detection_classes'][position]+1)) + " on " + detectionKey)
-                window["textbox"].update(window["textbox"].get() + "\n" + str(category_index.get(detections['detection_classes'][position]+1)) + " on " + detectionKey)
-                with open("Log.txt", "wt") as text_file:
-                    text_file.write(str(window["textbox"].get()))
-
-        #print(str(detections['detection_classes']) + "was found on " + detectionKey)
-    else:
-        window[detectionKey].Widget.config(background='black')
-        window[detectionKey2].Widget.config(background='black')
-
-    #Update camera
-    imgbytes = cv.imencode(".png", frame)[1].tobytes()
-    window[detectionKey].update(data=imgbytes)
-    
-thread = Thread(target=gps_controller.extract_coordinates)
-thread.start()
-
 detections_list = []
 
 # Spawn thread for concurrent GPS reading (to bypass Input/Output delay of live reads)
-
 thread = Thread(target=gps_controller.extract_coordinates)
 thread.start()
 
