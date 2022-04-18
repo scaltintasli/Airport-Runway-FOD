@@ -20,6 +20,9 @@ from Detection import Detection
 import os, shutil
 from tracker import *
 from extract_coordinates import *
+from threading import Thread
+
+
 
 def create_folder(folderName):
     exists = os.path.exists(folderName)
@@ -198,8 +201,14 @@ except: # if unable to access gps
     createMap()
 
 print("Line 199")
+def openMap(m, detections_list):
 
-def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
+    for det in detections_list:
+        det.addPoint()
+
+    webbrowser.open("map.html")
+
+def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_list):
     image_np = np.array(frame)
     input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
     detections = detect_fn(input_tensor)
@@ -258,6 +267,13 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
     imgbytes = cv.imencode(".png", frame)[1].tobytes()
     window[detectionKey].update(data=imgbytes)
     
+thread = Thread(target=gps_controller.extract_coordinates)
+thread.start()
+
+detections_list = []
+
+# Spawn thread for concurrent GPS reading (to bypass Input/Output delay of live reads)
+
 thread = Thread(target=gps_controller.extract_coordinates)
 thread.start()
 

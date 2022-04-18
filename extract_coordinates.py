@@ -29,7 +29,7 @@ class GPS_Controller():
 
     # The following function takes raw data (array) as argument, returns [longitude, latitude] as decimal degrees.
     # Raw data is in NMEA format, so we need to parse the numbers to get the true decimal-degree coordinates.
-    # For example, 09349.7112 West is actually -93.82852 because the first digits (093) indicate degrees,
+    # For example, 09349.7112 West is actually -93.82852 because the first digits (093) indicate degrees, 
     # while the rest of the number (49.7...) indicates the minutes.
     # West and South correspond to negative values for latitude and longitude, respectively.
     def transform_coordinates(self, raw_data):
@@ -99,9 +99,7 @@ class GPS_Controller():
 
     def extract_coordinates(self):
         raw_data = self.get_raw_gps()
-        print("Line 102")
         transformed = self.transform_coordinates(raw_data)
-        print("Line 104")
         self.last_coords = transformed
         print("extract_coordinates: " + str(transformed))
         return transformed
