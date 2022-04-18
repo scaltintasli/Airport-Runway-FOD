@@ -47,6 +47,7 @@ class EuclideanDistTracker:
                 savePath = det.image
                 plt.imshow(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
                 plt.savefig(savePath)
+                det.writeToLog()
 
 
 

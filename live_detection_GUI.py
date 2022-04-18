@@ -40,6 +40,10 @@ def delete_folder_contents(folderPath):
             print('Failed to delete %s. Reason: %s' % (file_path, e))
     print("Contents of folder deleted: " + folderPath)
 
+def clearLog():
+    with open("Log.txt", "a") as text_file:
+        text_file.truncate(0)
+
 
 @tf.function
 def detect_fn(image):
@@ -134,16 +138,16 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
         window[detectionKey].Widget.config(background='red')
         window[detectionKey2].Widget.config(background='red')
         # playsound._playsoundWin('alarm.wav')
-
+        ### Moved - tracker.py calls det to write to log
         # display to textbox
-        for position in positionList:
-            if (
-            category_index.get(detections['detection_classes'][position] == detections['detection_classes'][position])):
-                # print(str(category_index.get(detections['detection_classes'][position]+1)) + " on " + detectionKey)
-                window["textbox"].update(window["textbox"].get() + "\n" + str(
-                    category_index.get(detections['detection_classes'][position] + 1)) + " on " + detectionKey)
-                with open("Log.txt", "wt") as text_file:
-                    text_file.write(str(window["textbox"].get()))
+        # for position in positionList:
+        #     if (
+        #     category_index.get(detections['detection_classes'][position] == detections['detection_classes'][position])):
+        #         # print(str(category_index.get(detections['detection_classes'][position]+1)) + " on " + detectionKey)
+        #         window["textbox"].update(window["textbox"].get() + "\n" + str(
+        #             category_index.get(detections['detection_classes'][position] + 1)) + " on " + detectionKey)
+        #         with open("Log.txt", "wt") as text_file:
+        #             text_file.write(str(window["textbox"].get()))
 
         # print(str(detections['detection_classes']) + "was found on " + detectionKey)
     else:
@@ -159,6 +163,8 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
 create_folder("detectionImages")
 # Clear detections from past runs
 delete_folder_contents("detectionImages")
+#Clear log file
+clearLog()
 
 # Label map path
 LABEL_MAP_NAME = 'Tensorflow/workspace/annotations/label_map.pbtxt'
