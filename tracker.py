@@ -31,7 +31,7 @@ class EuclideanDistTracker:
                 dist = math.hypot(cx - pt[0], cy - pt[1])
                 #print(id, " ", dist)
                 # Might need to change the dist < number based on speed
-                if dist < 60:
+                if dist < 80:
                     self.center_points[id] = (cx, cy)
                     #print(self.center_points)
                     objects_bbs_ids.append([x, y, w, h, id])
