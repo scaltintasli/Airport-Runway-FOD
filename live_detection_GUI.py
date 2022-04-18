@@ -116,6 +116,12 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
     # detection_classes should be ints.
     detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
 
+    # Used for object tracking
+    listDetections = []
+
+    #List of objects position in detections[] with a certain threshold
+    positionList = findScore(detections['detection_scores'], threshold)
+
     # label_id_offset = 1
     # image_np_with_detections = image_np.copy()
     #
@@ -130,23 +136,30 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
     #             min_score_thresh=threshold,
     #             agnostic_mode=False)
 
+    # Gets the detection coordinates from the detections object and adds to array for tracking
+    for position in positionList:
+        # detect --> [ymin, xmin, ymax, xmax]
+        detect = detections['detection_boxes'][position]
+        x, y, w, h = (
+        detect[1] * camera_Width, detect[0] * camera_Height, detect[3] * camera_Width, detect[2] * camera_Height)
+        listDetections.append([x, y, w, h])
+
     frame = cv.resize(image_np, frameSize)
 
-    positionList = findScore(detections['detection_scores'], threshold)
-    # print(str(positionList) + "list")
+    det = Detection("placeholderType", m, gps_controller)
+    detections_list.append(det)  # Add to list of detections (instead of map yet)
+
+    # Object Tracking
+    boxes_ids = tracker.update(listDetections, frame, det)
+    for box_id in boxes_ids:
+        x, y, w, h, id = box_id
+        cv.putText(frame, str(id), (int(x), int(y) - 15), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+        cv.rectangle(frame, (int(x), int(y)), (int(w), int(h)), (0, 255, 0), 3)
 
     if positionList != []:
         window[detectionKey].Widget.config(background='red')
         window[detectionKey2].Widget.config(background='red')
         # playsound._playsoundWin('alarm.wav')
-
-        det = Detection("placeholderType", m, gps_controller)
-        # Save detection as image:
-        savePath = det.image
-        plt.imshow(cv.cvtColor(image_np, cv.COLOR_BGR2RGB))
-        plt.savefig(savePath)
-
-        detections_list.append(det)  # Add to list of detections (instead of map yet)
 
         # display to textbox
         for position in positionList:
@@ -228,8 +241,8 @@ files = {
 category_index = label_map_util.create_category_index_from_labelmap(files['LABELMAP'])
 # Camera Settings
 camera_Width  = 480 # 320 # 480 # 720 # 1080 # 1620
-camera_Heigth = 360 # 240 # 360 # 540 # 810  # 1215
-frameSize = (camera_Width, camera_Heigth)
+camera_Height = 360 # 240 # 360 # 540 # 810  # 1215
+frameSize = (camera_Width, camera_Height)
 video_capture1 = cv.VideoCapture('Video 2.mp4')
 video_capture2 = cv.VideoCapture(1)
 video_capture3 = cv.VideoCapture(2)
