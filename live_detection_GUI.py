@@ -21,6 +21,11 @@ import os, shutil
 from tracker import *
 from extract_coordinates import *
 
+def create_folder(folderName):
+    exists = os.path.exists(folderName)
+    if not exists:
+        os.makedirs(folderName)
+
 def delete_folder_contents(folderPath):
     for filename in os.listdir(folderPath):
         file_path = os.path.join(folderPath, filename)
@@ -89,6 +94,9 @@ def getCameraChoice(choice):
     elif choiceInt == 5:
        frame = video_capture5.read()
     return frame
+
+# Create folder for storing snapshots of detections (if not already created)
+create_folder("detectionImages")
 
 # Clear detections from past runs
 delete_folder_contents("detectionImages")
@@ -177,11 +185,19 @@ window    = sg.Window("FOD Detection", layout,
 
 # Initialize GPS controller
 gps_controller = GPS_Controller()
+gps_controller = None
+
+print("Line 189")
 
 try: # if gps is accessible
+    print("Line 192")
     starting_coords = gps_controller.extract_coordinates()
+    print("Line 194")
 except: # if unable to access gps
+    print("Line 196")
     createMap()
+
+print("Line 199")
 
 def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
     image_np = np.array(frame)
@@ -241,15 +257,23 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
     #Update camera
     imgbytes = cv.imencode(".png", frame)[1].tobytes()
     window[detectionKey].update(data=imgbytes)
+    
+thread = Thread(target=gps_controller.extract_coordinates)
+thread.start()
 
 while True:
     start_time = time.time()
     event, values = window.read(timeout=20)
 
+    if thread.is_alive() == False:
+        print("thread completed")
+        thread = Thread(target=gps_controller.extract_coordinates)
+        thread.start()
+
     if event == sg.WIN_CLOSED:
         break
     if event == 'Map':
-        openMap()
+        openMap(m, detections_list)
 
     if (cameraAmount == 1):
         ret, frame1 = getCameraChoice(values['choice1'])

@@ -99,7 +99,9 @@ class GPS_Controller():
 
     def extract_coordinates(self):
         raw_data = self.get_raw_gps()
+        print("Line 102")
         transformed = self.transform_coordinates(raw_data)
+        print("Line 104")
         self.last_coords = transformed
         print("extract_coordinates: " + str(transformed))
         return transformed
