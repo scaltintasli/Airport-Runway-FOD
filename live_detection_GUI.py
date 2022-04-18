@@ -50,9 +50,8 @@ PRETRAINED_MODEL_NAME = 'efficentDet2-FGPandGLT-50k-04.tar.gz'
 PRETRAINED_MODEL_URL = 'http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8.tar.gz'
 TF_RECORD_SCRIPT_NAME = 'generate_tfrecord.py'
 LABEL_MAP_NAME = 'label_map.pbtxt'
-#detect_fn = tf.saved_model.load("Tensorflow\workspace\pre-trained-models\ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8\saved_model")
 
-#Efficent det2 path
+#Model path
 d2PathCkpt = 'Tensorflow/workspace/models/my_ssd_mobnet'
 d2Config = 'Tensorflow/workspace/models/my_ssd_mobnet/pipeline.config'
 

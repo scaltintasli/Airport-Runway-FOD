@@ -5,6 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="70bcf08c-bc76-408e-a70a-33ad0a18a78a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/detectionImages/blank.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/extract_coordinates.py" beforeDir="false" afterPath="$PROJECT_DIR$/extract_coordinates.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/live_detection_GUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/live_detection_GUI.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
