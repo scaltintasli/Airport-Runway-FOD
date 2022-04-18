@@ -101,7 +101,7 @@ category_index = label_map_util.create_category_index_from_labelmap(files['LABEL
 camera_Width  = 480 # 320 # 480 # 720 # 1080 # 1620
 camera_Heigth = 360 # 240 # 360 # 540 # 810  # 1215
 frameSize = (camera_Width, camera_Heigth)
-video_capture1 = cv.VideoCapture(0)
+video_capture1 = cv.VideoCapture('Video 2.mp4')
 video_capture2 = cv.VideoCapture(1)
 video_capture3 = cv.VideoCapture(2)
 video_capture4 = cv.VideoCapture(3)
@@ -267,7 +267,7 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
     #             min_score_thresh=threshold,
     #             agnostic_mode=False)
 
-    frame = cv.resize(image_np_with_detections, frameSize)
+    frame = cv.resize(image_np, frameSize)
 
     positionList = findScore(detections['detection_scores'], threshold)
     #print(str(positionList) + "list")
@@ -280,7 +280,7 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
         det = Detection("placeholderType", m, gps_controller)
         # Save detection as image:
         savePath = det.image
-        plt.imshow(cv.cvtColor(image_np_with_detections, cv.COLOR_BGR2RGB))
+        plt.imshow(cv.cvtColor(image_np, cv.COLOR_BGR2RGB))
         plt.savefig(savePath)
 
         detections_list.append(det) # Add to list of detections (instead of map yet)
