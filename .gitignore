@@ -1,0 +1,11 @@
+
+*.md
+Airport-Runway-FOD/training.py
+main.py
+map.html
+message.py
+Tensorflow/workspace/models/my_ssd_mobnet/checkpoint
+*.data-00000-of-00001
+*.index
+*.v2
+*.gz
