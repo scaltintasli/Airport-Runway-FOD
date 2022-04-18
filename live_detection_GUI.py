@@ -141,7 +141,7 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
         cv.putText(frame, str(id), (int(x), int(y) - 15), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
         cv.rectangle(frame, (int(x), int(y)), (int(w), int(h)), (0, 255, 0), 3)
 
-    if positionList != []:
+    if positionList:
         window[detectionKey].Widget.config(background='red')
         window[detectionKey2].Widget.config(background='red')
 
@@ -257,7 +257,8 @@ gps_controller = GPS_Controller()
 try: # if gps is accessible
     starting_coords = gps_controller.extract_coordinates()
 except: # if unable to access gps
-    createMap()
+    starting_coords = None
+m = createMap()
 
 detections_list = []
 
@@ -269,7 +270,7 @@ while True:
     start_time = time.time()
     event, values = window.read(timeout=20)
 
-    if thread.is_alive() == False:
+    if not thread.is_alive():
         print("thread completed")
         thread = Thread(target=gps_controller.extract_coordinates)
         thread.start()
@@ -279,22 +280,22 @@ while True:
     if event == 'Map':
         openMap(m, detections_list)
 
-    if (cameraAmount == 1):
+    if cameraAmount == 1:
         ret, frame1 = getCameraChoice(values['choice1'])
         tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
-    elif (cameraAmount == 2):
+    elif cameraAmount == 2:
         ret, frame1 = getCameraChoice(values['choice1'])
         tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
         ret, frame2 = getCameraChoice(values['choice2'])
         tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
-    elif (cameraAmount == 3):
+    elif cameraAmount == 3:
         ret, frame1 = getCameraChoice(values['choice1'])
         tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
         ret, frame2 = getCameraChoice(values['choice2'])
         tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
         ret, frame3 = getCameraChoice(values['choice3'])
         tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
-    elif (cameraAmount == 4):
+    elif cameraAmount == 4:
         ret, frame1 = getCameraChoice(values['choice1'])
         tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
         ret, frame2 = getCameraChoice(values['choice2'])
@@ -303,7 +304,7 @@ while True:
         tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
         ret, frame4 = getCameraChoice(values['choice4'])
         tfBoundingBoxes(frame4, "cam4", "cam4Update", threshold)
-    elif (cameraAmount == 5):
+    elif cameraAmount == 5:
         ret, frame1 = getCameraChoice(values['choice1'])
         tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
         ret, frame2 = getCameraChoice(values['choice2'])
