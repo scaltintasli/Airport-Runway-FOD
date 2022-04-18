@@ -29,6 +29,10 @@ if you want to use your GPU:
 
 ## Installation
 
+The following video explains how to set up Tensorflow, and the general workflow for gathering data and training a model:
+
+https://youtu.be/yqkISICHH-U
+
 
 ```git clone https://github.com/scaltintasli/Airport-Runway-FOD.git```
 
