@@ -22,7 +22,6 @@ from extract_coordinates import *
 from threading import Thread
 
 
-
 def create_folder(folderName):
     exists = os.path.exists(folderName)
     if not exists:
@@ -255,19 +254,19 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
     # detection_classes should be ints.
     detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
 
-    label_id_offset = 1
-    image_np_with_detections = image_np.copy()
-
-    viz_utils.visualize_boxes_and_labels_on_image_array(
-                image_np_with_detections,
-                detections['detection_boxes'],
-                detections['detection_classes']+label_id_offset,
-                detections['detection_scores'],
-                category_index,
-                use_normalized_coordinates=True,
-                max_boxes_to_draw=5,
-                min_score_thresh=threshold,
-                agnostic_mode=False)
+    # label_id_offset = 1
+    # image_np_with_detections = image_np.copy()
+    #
+    # viz_utils.visualize_boxes_and_labels_on_image_array(
+    #             image_np_with_detections,
+    #             detections['detection_boxes'],
+    #             detections['detection_classes']+label_id_offset,
+    #             detections['detection_scores'],
+    #             category_index,
+    #             use_normalized_coordinates=True,
+    #             max_boxes_to_draw=5,
+    #             min_score_thresh=threshold,
+    #             agnostic_mode=False)
 
     frame = cv.resize(image_np_with_detections, frameSize)
 

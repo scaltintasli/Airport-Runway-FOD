@@ -98,11 +98,14 @@ class GPS_Controller():
             #sys.exit()
 
     def extract_coordinates(self):
-        raw_data = self.get_raw_gps()
-        transformed = self.transform_coordinates(raw_data)
-        self.last_coords = transformed
-        print("extract_coordinates: " + str(transformed))
-        return transformed
+        try:
+            raw_data = self.get_raw_gps()
+            transformed = self.transform_coordinates(raw_data)
+            self.last_coords = transformed
+            print("extract_coordinates: " + str(transformed))
+            return transformed
+        except:
+            return [0, 0]
 
 # Test case (only executes when this script is run directly, not when imported)
 if __name__ == "__main__":
