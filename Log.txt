@@ -51,3 +51,71 @@ None on cam1
 None on cam1
 None on cam1
 None on cam1
+None on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+{'id': 1, 'name': 'screw'} on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1
+None on cam1

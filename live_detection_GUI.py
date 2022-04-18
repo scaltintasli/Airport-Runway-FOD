@@ -48,9 +48,7 @@ def detect_fn(image):
     detections = detection_model.postprocess(prediction_dict, shapes)
     return detections
 
-
 def findScore(scoreValues, threshold):
-    found = []
     found = [i for i, e in enumerate(scoreValues) if e >= threshold]
     return found
 
@@ -59,6 +57,19 @@ def getThreshold(threshString):
 
 def getCameraAmount(cameraString):
     return int(cameraString)
+
+def createMap():
+    m = folium.Map(location=starting_coords, zoom_start=20)
+
+    tile = folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(m)
+
+    return m
 
 def openMap(m, detections_list):
     for det in detections_list:
@@ -146,24 +157,21 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
 
 # Create folder for storing snapshots of detections (if not already created)
 create_folder("detectionImages")
-
 # Clear detections from past runs
 delete_folder_contents("detectionImages")
 
+# Label map path
 LABEL_MAP_NAME = 'Tensorflow/workspace/annotations/label_map.pbtxt'
-
 #Model path
 d2PathCkpt = 'Tensorflow/workspace/models/my_ssd_mobnet'
 d2Config = 'Tensorflow/workspace/models/my_ssd_mobnet/pipeline.config'
-
 # Load pipeline config and build a detection model
 configs = config_util.get_configs_from_pipeline_file(d2Config)
 detection_model = model_builder.build(model_config=configs['model'], is_training=False)
-
 # Restore checkpoint
 ckpt = tf.compat.v2.train.Checkpoint(model=detection_model)
 ckpt.restore(os.path.join(d2PathCkpt, 'ckpt-51')).expect_partial()
-
+# Label map formatted
 category_index = label_map_util.create_category_index_from_labelmap(LABEL_MAP_NAME)
 # Camera Settings
 camera_Width  = 480 # 320 # 480 # 720 # 1080 # 1620
@@ -234,24 +242,15 @@ gps_controller = GPS_Controller()
 #Initialize object tracking object
 tracker = EuclideanDistTracker()
 
-# Initialize map
+# Initialize coordinates
 try: # if gps is accessible
     starting_coords = gps_controller.extract_coordinates()
 except: # if unable to access gps
-    starting_coords = None
-
-if starting_coords is None:
+    starting_coords = [0,0]
     print("unable to get starting coordinates - defaulting to 0,0")
-    starting_coords = [0, 0]
-m = folium.Map(location=starting_coords, zoom_start=20)
 
-tile = folium.TileLayer(
-        tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attr = 'Esri',
-        name = 'Esri Satellite',
-        overlay = False,
-        control = True
-       ).add_to(m)
+#Initialize map
+m = createMap()
 
 detections_list = []
 
