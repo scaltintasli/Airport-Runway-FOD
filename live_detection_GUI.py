@@ -75,13 +75,14 @@ def createMap():
 
     return m
 
-def openMap(m, detections_list):
+def openMap():
+    detections_list = tracker.detections_list
     for det in detections_list:
         det.addPoint()
 
     webbrowser.open("map.html")
 
-def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_list):
+def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
     image_np = np.array(frame)
     input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
     detections = detect_fn(input_tensor)
@@ -124,11 +125,8 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold, detections_li
 
     frame = cv.resize(image_np, frameSize)
 
-    det = Detection("placeholderType", m, gps_controller)
-    detections_list.append(det)  # Add to list of detections (instead of map yet)
-
     # Object Tracking
-    boxes_ids = tracker.update(listDetections, frame, det)
+    boxes_ids = tracker.update(listDetections, frame, gps_controller, m)
     for box_id in boxes_ids:
         x, y, w, h, id = box_id
         cv.putText(frame, str(id), (int(x), int(y) - 15), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
@@ -255,10 +253,8 @@ except: # if unable to access gps
     starting_coords = [0,0]
     print("unable to get starting coordinates - defaulting to 0,0")
 
-#Initialize map
+# Initialize map
 m = createMap()
-
-detections_list = []
 
 # Spawn thread for concurrent GPS reading (to bypass Input/Output delay of live reads)
 thread = Thread(target=gps_controller.extract_coordinates)
@@ -268,7 +264,7 @@ while True:
     start_time = time.time()
     event, values = window.read(timeout=20)
 
-    if thread.is_alive() == False:
+    if not thread.is_alive():
         print("thread completed")
         thread = Thread(target=gps_controller.extract_coordinates)
         thread.start()
@@ -276,43 +272,46 @@ while True:
     if event == sg.WIN_CLOSED:
         break
     if event == 'Map':
-        openMap(m, detections_list)
+        openMap()
 
-    if (getCameraAmount(values['cameraAmount']) == 1):
+    threshold = getThreshold(values['threshAmount'])
+    cameraAmount = getCameraAmount(values['cameraAmount'])
+
+    if cameraAmount == 1:
         ret, frame1 = video_capture1.read()
-        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']), detections_list)
-    elif (getCameraAmount(values['cameraAmount']) == 2):
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
+    elif cameraAmount == 2:
         ret, frame1 = video_capture1.read()
-        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
         ret, frame2 = video_capture2.read()
-        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']), detections_list)
-    elif (getCameraAmount(values['cameraAmount']) == 3):
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
+    elif cameraAmount == 3:
         ret, frame1 = video_capture1.read()
-        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
         ret, frame2 = video_capture2.read()
-        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
         ret, frame3 = video_capture3.read()
-        tfBoundingBoxes(frame3, "cam3", "cam3Update", getThreshold(values['threshAmount']), detections_list)
-    elif (getCameraAmount(values['cameraAmount']) == 4):
+        tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
+    elif cameraAmount == 4:
         ret, frame1 = video_capture1.read()
-        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
         ret, frame2 = video_capture2.read()
-        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
         ret, frame3 = video_capture3.read()
-        tfBoundingBoxes(frame3, "cam3", "cam3Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
         ret, frame4 = video_capture4.read()
-        tfBoundingBoxes(frame4, "cam4", "cam4Update", getThreshold(values['threshAmount']), detections_list)
-    elif (getCameraAmount(values['cameraAmount']) == 5):
+        tfBoundingBoxes(frame4, "cam4", "cam4Update", threshold)
+    elif cameraAmount == 5:
         ret, frame1 = video_capture1.read()
-        tfBoundingBoxes(frame1, "cam1", "cam1Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
         ret, frame2 = video_capture2.read()
-        tfBoundingBoxes(frame2, "cam2", "cam2Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
         ret, frame3 = video_capture3.read()
-        tfBoundingBoxes(frame3, "cam3", "cam3Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
         ret, frame4 = video_capture4.read()
-        tfBoundingBoxes(frame4, "cam4", "cam4Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame4, "cam4", "cam4Update", threshold)
         ret, frame5 = video_capture5.read()
-        tfBoundingBoxes(frame5, "cam5", "cam5Update", getThreshold(values['threshAmount']), detections_list)
+        tfBoundingBoxes(frame5, "cam5", "cam5Update", threshold)
         
 
 video_capture1.release()

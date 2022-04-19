@@ -80,7 +80,7 @@ class GPS_Controller():
             return [lat_final, long_final]
         except:
             print("error while transforming coordinates")
-            return None
+            return [0,0]
 
 
     def get_raw_gps(self): # Returns raw data from GPS as an array

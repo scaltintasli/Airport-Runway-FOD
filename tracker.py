@@ -7,6 +7,9 @@ import cv2 as cv
 
 
 class EuclideanDistTracker:
+
+    detections_list = []
+
     def __init__(self):
         # Store the center positions of the objects
         self.center_points = {}
@@ -14,8 +17,10 @@ class EuclideanDistTracker:
         # each time a new object id detected, the count will increase by one
         self.id_count = 0
 
+    def getDetectionsList(self):
+        return detections_list
 
-    def update(self, objects_rect, frame, det):
+    def update(self, objects_rect, frame, gps_controller, m):
         # Objects boxes and ids
         objects_bbs_ids = []
 
@@ -43,6 +48,10 @@ class EuclideanDistTracker:
                 self.center_points[self.id_count] = (cx, cy)
                 objects_bbs_ids.append([x, y, w, h, self.id_count])
                 self.id_count += 1
+                # Create det
+                det = Detection("placeholderType", m, gps_controller)
+                # Add to list of detections (instead of map yet)
+                self.detections_list.append(det)
                 # Save detection as image:
                 savePath = det.image
                 plt.imshow(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
