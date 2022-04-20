@@ -46,6 +46,10 @@ class Detection:
         except:
             return None
 
+    def writeToLog(self):
+        with open("Log.txt", "a") as text_file:
+            text_file.write("Object detected at: " + str(self.point) + '\n')
+
 # Testing (only executes if this file is run directly)
 if __name__ == "__main__":
 

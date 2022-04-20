@@ -14,7 +14,7 @@ class GPS_Controller():
     def get_gps_device(self):
 
         gps = None
-
+        return None
         for i in range(30):
             # Port used for device, baud rate set for device
             portString = "Com" + str(i)
@@ -80,7 +80,7 @@ class GPS_Controller():
             return [lat_final, long_final]
         except:
             print("error while transforming coordinates")
-            return None
+            return [0,0]
 
 
     def get_raw_gps(self): # Returns raw data from GPS as an array
@@ -98,11 +98,14 @@ class GPS_Controller():
             #sys.exit()
 
     def extract_coordinates(self):
-        raw_data = self.get_raw_gps()
-        transformed = self.transform_coordinates(raw_data)
-        self.last_coords = transformed
-        print("extract_coordinates: " + str(transformed))
-        return transformed
+        try:
+            raw_data = self.get_raw_gps()
+            transformed = self.transform_coordinates(raw_data)
+            self.last_coords = transformed
+            print("extract_coordinates: " + str(transformed))
+            return transformed
+        except:
+            return [0, 0]
 
 # Test case (only executes when this script is run directly, not when imported)
 if __name__ == "__main__":
