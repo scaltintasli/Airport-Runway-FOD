@@ -167,3 +167,7 @@ cython_debug/
 *.jpeg
 *.iml
 *.xml
+Log.txt
+map.html
+map.html
+.idea/workspace.xml
