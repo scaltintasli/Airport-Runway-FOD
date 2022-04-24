@@ -23,12 +23,12 @@ from threading import Thread
 from tracker import *
 
 
-def create_folder(folderName):
+def create_folder(folderName): # creates folder
     exists = os.path.exists(folderName)
     if not exists:
         os.makedirs(folderName)
 
-def delete_folder_contents(folderPath):
+def delete_folder_contents(folderPath): #deletes folder contents (don't want a huge folder of images)
     for filename in os.listdir(folderPath):
         file_path = os.path.join(folderPath, filename)
         try:
@@ -40,7 +40,7 @@ def delete_folder_contents(folderPath):
             print('Failed to delete %s. Reason: %s' % (file_path, e))
     print("Contents of folder deleted: " + folderPath)
 
-def clearLog():
+def clearLog(): #clears the log file
     with open("Log.txt", "a") as text_file:
         text_file.truncate(0)
 
@@ -52,17 +52,17 @@ def detect_fn(image):
     detections = detection_model.postprocess(prediction_dict, shapes)
     return detections
 
-def findScore(scoreValues, threshold):
+def findScore(scoreValues, threshold): # finds the score of each detection
     found = [i for i, e in enumerate(scoreValues) if e >= threshold]
     return found
 
-def getThreshold(threshString):
+def getThreshold(threshString): #returns threshold amount
     return int(threshString[:-1]) / 100
 
-def getCameraAmount(cameraString):
+def getCameraAmount(cameraString): #returns camera amount to know how many cams to display
     return int(cameraString)
 
-def createMap():
+def createMap(): #creates the map
     m = folium.Map(location=starting_coords, zoom_start=20)
 
     tile = folium.TileLayer(
@@ -75,12 +75,26 @@ def createMap():
 
     return m
 
-def openMap():
+def openMap(): #adds each detection to the map then opens map
     detections_list = tracker.detections_list
     for det in detections_list:
         det.addPoint()
 
     webbrowser.open("map.html")
+
+def getCameraChoice(choice): # returns the correct frame for camera display
+    choiceInt = int(choice)
+    if choiceInt == 1:
+       frame = video_capture1.read()
+    elif choiceInt == 2:
+       frame = video_capture2.read()
+    elif choiceInt == 3:
+       frame = video_capture3.read()
+    elif choiceInt == 4:
+       frame = video_capture4.read()
+    elif choiceInt == 5:
+       frame = video_capture5.read()
+    return frame
 
 def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
     image_np = np.array(frame)
@@ -132,7 +146,7 @@ def tfBoundingBoxes(frame, detectionKey, detectionKey2, threshold):
         cv.putText(frame, str(id), (int(x), int(y) - 15), cv.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
         cv.rectangle(frame, (int(x), int(y)), (int(w), int(h)), (0, 255, 0), 3)
 
-    if positionList != []:
+    if positionList != []: #if position list is not empty means there is a detection
         window[detectionKey].Widget.config(background='red')
         window[detectionKey2].Widget.config(background='red')
         # playsound._playsoundWin('alarm.wav')
@@ -191,7 +205,7 @@ time.sleep(2.0)
 # init Windows Manager
 sg.theme("Black")
 
-# def webcam col
+# def webcam columns
 cameracolumn_layout = [[sg.Text("Choose how many camera's you want to display", size=(60,1))], [sg.Combo(["1", "2", "3", "4", "5"], key="cameraAmount", default_value="1")]]
 
 cameracolumn = sg.Column(cameracolumn_layout, element_justification='center', background_color="black")
@@ -200,32 +214,28 @@ mapbutton_layout = [[sg.Text("Open Map", size=(60,1), justification='center')], 
 
 mapbutton = sg.Column(mapbutton_layout, element_justification='center', background_color="black")
 
-blankcolumn_layout = [[sg.Text("", size=(60,1))], [sg.Text("")]]
-
-blankcolumn = sg.Column(blankcolumn_layout, element_justification='center', background_color="black")
-
-threshcolumn_layout = [[sg.Text("Choose the threshold you want to use", size=(60,1))], [sg.Combo(["10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], key='threshAmount', default_value="60%")]]
+threshcolumn_layout = [[sg.Text("Choose the threshold you want to use (%)", size=(60,1))], [sg.Combo(["10", "20", "30", "40", "50", "60", "70", "80", "90", "100"], key='threshAmount', default_value="60")]]
 
 threshcolumn = sg.Column(threshcolumn_layout, element_justification='center', background_color="black")
 
 colwebcam1_layout = [[sg.Text("Camera 1 (Front Driver)", size=(60, 1), background_color='black', justification="center")],
-                        [sg.Image(filename="", key="cam1")]]
+                        [sg.Image(filename="", key="cam1")], [sg.Combo(["1", "2", "3", "4", "5"], key="choice1", default_value="1")]]
 colwebcam1 = sg.Column(colwebcam1_layout, element_justification='center', key="cam1Update", background_color='black')
 
 colwebcam2_layout = [[sg.Text("Camera 2 (Front Passenger)", size=(60, 1), justification="center")],
-                        [sg.Image(filename="", key="cam2")]]
+                        [sg.Image(filename="", key="cam2")], [sg.Combo(["1", "2", "3", "4", "5"], key="choice2", default_value="2")]]
 colwebcam2 = sg.Column(colwebcam2_layout, element_justification='center', key="cam2Update", background_color='black')
 
 colwebcam3_layout = [[sg.Text("Camera 3 (Driver Side)", size=(60, 1), justification="center")],
-                        [sg.Image(filename="", key="cam3")]]
+                        [sg.Image(filename="", key="cam3")], [sg.Combo(["1", "2", "3", "4", "5"], key="choice3", default_value="3")]]
 colwebcam3 = sg.Column(colwebcam3_layout, element_justification='center', key="cam3Update", background_color='black')
 
 colwebcam4_layout = [[sg.Text("Camera 4 (Passenger Side)", size=(60, 1), justification="center")],
-                        [sg.Image(filename="", key="cam4")]]
+                        [sg.Image(filename="", key="cam4")], [sg.Combo(["1", "2", "3", "4", "5"], key="choice4", default_value="4")]]
 colwebcam4 = sg.Column(colwebcam4_layout, element_justification='center', key="cam4Update", background_color='black')
 
 colwebcam5_layout = [[sg.Text("Camera 5 (Rear)", size=(60, 1), justification="center")],
-                        [sg.Image(filename="", key="cam5")]]
+                        [sg.Image(filename="", key="cam5")], [sg.Combo(["1", "2", "3", "4", "5"], key="choice5", default_value="5")]]
 colwebcam5 = sg.Column(colwebcam5_layout, element_justification='center', key="cam5Update", background_color='black')
 
 coltextbox_layout = [[sg.Text("Output", size=(60,1), justification="center")],
@@ -278,42 +288,42 @@ while True:
     cameraAmount = getCameraAmount(values['cameraAmount'])
 
     if cameraAmount == 1:
-        ret, frame1 = video_capture1.read()
+        ret, frame1 = getCameraChoice(values['choice1'])
         tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
     elif cameraAmount == 2:
-        ret, frame1 = video_capture1.read()
+        ret, frame1 = getCameraChoice(values['choice1'])
         tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
-        ret, frame2 = video_capture2.read()
+        ret, frame2 = getCameraChoice(values['choice2'])
         tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
     elif cameraAmount == 3:
-        ret, frame1 = video_capture1.read()
+        ret, frame1 = getCameraChoice( values['choice1'])
         tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
-        ret, frame2 = video_capture2.read()
+        ret, frame2 = getCameraChoice(values['choice2'])
         tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
-        ret, frame3 = video_capture3.read()
+        ret, frame3 = getCameraChoice(values['choice3'])
         tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
     elif cameraAmount == 4:
-        ret, frame1 = video_capture1.read()
+        ret, frame1 = getCameraChoice(values['choice1'])
         tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
-        ret, frame2 = video_capture2.read()
+        ret, frame2 = getCameraChoice(values['choice2'])
         tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
-        ret, frame3 = video_capture3.read()
+        ret, frame3 = getCameraChoice(values['choice3'])
         tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
-        ret, frame4 = video_capture4.read()
+        ret, frame4 = getCameraChoice(values['choice4'])
         tfBoundingBoxes(frame4, "cam4", "cam4Update", threshold)
     elif cameraAmount == 5:
-        ret, frame1 = video_capture1.read()
+        ret, frame1 = getCameraChoice(values['choice1'])
         tfBoundingBoxes(frame1, "cam1", "cam1Update", threshold)
-        ret, frame2 = video_capture2.read()
+        ret, frame2 = getCameraChoice(values['choice2'])
         tfBoundingBoxes(frame2, "cam2", "cam2Update", threshold)
-        ret, frame3 = video_capture3.read()
+        ret, frame3 = getCameraChoice(values['choice3'])
         tfBoundingBoxes(frame3, "cam3", "cam3Update", threshold)
-        ret, frame4 = video_capture4.read()
+        ret, frame4 = getCameraChoice(values['choice4'])
         tfBoundingBoxes(frame4, "cam4", "cam4Update", threshold)
-        ret, frame5 = video_capture5.read()
+        ret, frame5 = getCameraChoice(values['choice5'])
         tfBoundingBoxes(frame5, "cam5", "cam5Update", threshold)
         
-
+#destroys all cameras and windows
 video_capture1.release()
 video_capture2.release()
 video_capture3.release()
