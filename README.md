@@ -1,6 +1,6 @@
 # Airport-Runway-FOD
 
-Our software intends to do it with the help of a high definition camera and machine learning capabilities. It will be able to detect foreigh object debris on runways quickly and efficiently giving airport staff time to clean up runways and most importantly keep our travel plans on schedule. 
+Our software detects debris on runways with the help of a high definition camera and machine learning capabilities. It will be able to detect foreign object debris on runways quickly and efficiently, giving airport staff time to clean up runways and most importantly keep our travel plans on schedule. 
 
 In order to complete the task mentioned above there are a series of goals and objectives our software must include to make this technology into a reality. 
 
@@ -29,9 +29,8 @@ if you want to use your GPU:
 
 ## Installation
 
-The following video explains how to set up Tensorflow, and the general workflow for gathering data and training a model:
-
-https://youtu.be/yqkISICHH-U
+The following video explains how to set up Tensorflow, and the general workflow for gathering data and training a model: https://youtu.be/yqkISICHH-U
+If you encounter any issues setting up the project, the video covers common issues and troubleshooting. Most errors can be resolved by using pip to install any missing packages.
 
 
 ```git clone https://github.com/scaltintasli/Airport-Runway-FOD.git```
@@ -49,7 +48,7 @@ https://youtu.be/yqkISICHH-U
 
 ## Usage
 
-### TRANING
+### TRAINING
 
 Edit label list and add items to list(these label names should match with images labels and it is case sensetive). the list is there :https://github.com/scaltintasli/Airport-Runway-FOD/blob/main/train_image.py#L48
 
