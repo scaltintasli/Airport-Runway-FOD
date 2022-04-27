@@ -323,7 +323,7 @@ while True:
         ret, frame5 = getCameraChoice(values['choice5'])
         tfBoundingBoxes(frame5, "cam5", "cam5Update", threshold)
         
-#destroys all cameras and windows
+# Upon exit, destroys all cameras and windows
 video_capture1.release()
 video_capture2.release()
 video_capture3.release()

@@ -14,7 +14,7 @@ class GPS_Controller():
     def get_gps_device(self):
 
         gps = None
-        #return None
+        #return None # If you don't have a GPS device, uncomment this line to skip mapping
         for i in range(30):
             # Port used for device, baud rate set for device
             portString = "Com" + str(i)
