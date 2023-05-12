@@ -50,9 +50,9 @@ If you encounter any issues setting up the project, the video covers common issu
 
 ### TRAINING
 
-Edit label list and add items to list(these label names should match with images labels and it is case sensetive). the list is there :https://github.com/scaltintasli/Airport-Runway-FOD/blob/main/train_image.py#L48
+Edit label list and add items to list (these label names should match with images labels and it is case sensitive). the list is there :https://github.com/scaltintasli/Airport-Runway-FOD/blob/main/train_image.py#L48
 
-Add images to test folder and train folder(with the .xml files)
+Add images to test folder and train folder (with the .xml files)
 run ```python train_image.py```
  
 ### DETECTION
